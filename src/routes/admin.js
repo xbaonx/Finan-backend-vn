@@ -11,6 +11,25 @@ const {
 } = require('../utils/storage');
 const router = express.Router();
 
+/**
+ * GET /api/v1/admin/debug
+ * Debug endpoint to check password hash (remove in production!)
+ */
+router.get('/debug', (req, res) => {
+  const testPassword = 'admin123';
+  const generatedHash = bcrypt.hashSync(testPassword, 10);
+  
+  res.json({
+    debug: true,
+    adminUsername: ADMIN_USERNAME,
+    envPasswordHash: ADMIN_PASSWORD_HASH,
+    generatedHash,
+    testComparison: bcrypt.compareSync(testPassword, ADMIN_PASSWORD_HASH),
+    generatedComparison: bcrypt.compareSync(testPassword, generatedHash),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Admin credentials (in production, use environment variables)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || bcrypt.hashSync('admin123', 10);
