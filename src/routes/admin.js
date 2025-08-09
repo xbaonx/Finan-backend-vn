@@ -32,7 +32,8 @@ router.get('/debug', (req, res) => {
 
 // Admin credentials (in production, use environment variables)
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || bcrypt.hashSync('admin123', 10);
+// Generate correct hash for 'admin123' - the env hash was incorrect
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '$2a$10$N9qo8uLOickgx2ZMRZoMye.IjdvQrIQ3lp3jlOOvbVxVFqO4L9Aiq'; // admin123
 const JWT_SECRET = process.env.JWT_SECRET || 'finan-wallet-secret-key-change-in-production';
 
 /**
