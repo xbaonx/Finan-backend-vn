@@ -26,6 +26,8 @@ app.use(helmet({
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
       frameSrc: ["'none'"],
+      // Allow inline event handlers in HTML attributes
+      scriptSrcAttr: ["'unsafe-inline'"],
     },
   },
 }));
