@@ -13,7 +13,7 @@ yarn-error.log*
 
 # Data storage (will be created on Render)
 data/
-*.json
+data/*.json
 
 # Logs
 logs
