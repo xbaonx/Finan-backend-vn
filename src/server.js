@@ -35,6 +35,9 @@ app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files (admin panel)
+app.use(express.static('public'));
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -43,6 +46,11 @@ app.get('/health', (req, res) => {
     service: 'Finan Wallet Backend',
     version: '1.0.0'
   });
+});
+
+// Admin panel route
+app.get('/admin', (req, res) => {
+  res.sendFile('admin.html', { root: 'public' });
 });
 
 // API Routes
