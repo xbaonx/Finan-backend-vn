@@ -148,7 +148,7 @@ function displayOrders(orders) {
                         <td>${order.id.substring(0, 8)}...</td>
                         <td>${order.type === 'deposit' ? '📥 Nạp' : '📤 Rút'}</td>
                         <td>
-                            ${order.walletAddress.substring(0, 10)}...
+                            <span style="font-family: monospace; font-size: 0.9em;">${order.walletAddress}</span>
                             <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}', this)" title="Copy wallet address">
                                 <i class="fas fa-copy"></i>
                             </button>
