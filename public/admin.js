@@ -53,12 +53,19 @@ async function loadDashboard() {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
         const data = await response.json();
         
         if (data.success) {
             updateStats(data.dashboard.summary);
             loadOrders();
             loadConfig();
+        } else {
+            console.error('Dashboard load failed:', data.message);
         }
     } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -92,11 +99,18 @@ async function loadOrders() {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
         const data = await response.json();
         
         if (data.success) {
             currentOrders = data.orders;
             displayOrders(data.orders);
+        } else {
+            container.innerHTML = `<div class="error">Lỗi tải đơn hàng: ${data.message || 'Không thể tải đơn hàng'}</div>`;
         }
     } catch (error) {
         container.innerHTML = `<div class="error">Lỗi tải đơn hàng: ${error.message}</div>`;
@@ -157,49 +171,60 @@ function displayOrders(orders) {
 
 // Update order status
 async function updateOrderStatus(orderId, newStatus, orderType) {
-    if (!newStatus) return;
-    
     try {
+        const notes = prompt('Ghi chú (tùy chọn):');
+        
         const response = await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
             method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
             },
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ status: newStatus, notes })
         });
+        
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
         
         const data = await response.json();
         
         if (data.success) {
-            showSuccess('configSuccess', `Đã cập nhật trạng thái đơn hàng thành công`);
             loadOrders(); // Reload orders
             loadDashboard(); // Reload stats
         } else {
-            showError('configError', data.message || 'Cập nhật thất bại');
+            alert('Lỗi cập nhật trạng thái: ' + data.message);
         }
     } catch (error) {
-        showError('configError', 'Lỗi cập nhật: ' + error.message);
+        alert('Lỗi cập nhật trạng thái: ' + error.message);
     }
 }
 
 // Load config
 async function loadConfig() {
     try {
-        // Load exchange rates
-        const ratesResponse = await fetch(`${API_BASE}/deposit-withdraw/rates`);
-        const ratesData = await ratesResponse.json();
-        if (ratesData.success) {
-            document.getElementById('exchangeRate').value = ratesData.rates.usdToVnd;
+        const response = await fetch(`${API_BASE}/admin/config`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.status === 401) {
+            handleAuthError();
+            return;
         }
-
-        // Load swap config
-        const swapResponse = await fetch(`${API_BASE}/swap/config`);
-        const swapData = await swapResponse.json();
-        if (swapData.success) {
-            document.getElementById('platformFee').value = swapData.config.platformFeePercentage;
-            document.getElementById('minSwapAmount').value = swapData.config.minSwapAmount;
-            document.getElementById('maxSwapAmount').value = swapData.config.maxSwapAmount;
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update exchange rate display
+            document.getElementById('currentRate').textContent = 
+                data.config.exchangeRates.USD_TO_VND.toLocaleString();
+            
+            // Update swap config display
+            const swapConfig = data.config.swapConfig;
+            document.getElementById('platformFee').textContent = swapConfig.platformFeePercentage + '%';
+            document.getElementById('minSwap').textContent = swapConfig.minSwapAmount + ' USDT';
+            document.getElementById('maxSwap').textContent = swapConfig.maxSwapAmount.toLocaleString() + ' USDT';
         }
     } catch (error) {
         console.error('Error loading config:', error);
@@ -350,6 +375,16 @@ function showSuccess(elementId, message) {
     element.textContent = message;
     element.classList.remove('hidden');
     setTimeout(() => element.classList.add('hidden'), 3000);
+}
+
+// Handle authentication errors
+function handleAuthError() {
+    console.log('Authentication failed - redirecting to login');
+    localStorage.removeItem('adminToken');
+    authToken = null;
+    document.getElementById('dashboardSection').classList.add('hidden');
+    document.getElementById('loginSection').classList.remove('hidden');
+    showError('loginError', 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
 }
 
 // Make functions global for onclick handlers
