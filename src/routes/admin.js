@@ -7,7 +7,9 @@ const {
   getSwapConfig, 
   updateSwapConfig, 
   getExchangeRates, 
-  updateExchangeRates 
+  updateExchangeRates,
+  getAppModeConfig,
+  updateAppModeConfig 
 } = require('../utils/storage');
 const router = express.Router();
 
@@ -421,6 +423,66 @@ router.get('/stats', verifyAdminToken, async (req, res) => {
     console.error('Error getting admin stats:', error);
     res.status(500).json({
       error: 'Failed to get statistics',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/v1/admin/app-mode
+ * Get app mode configuration
+ */
+router.get('/app-mode', verifyAdminToken, async (req, res) => {
+  try {
+    const appModeConfig = await getAppModeConfig();
+    res.json({
+      success: true,
+      data: appModeConfig
+    });
+  } catch (error) {
+    console.error('Error getting app mode config:', error);
+    res.status(500).json({
+      error: 'Failed to get app mode configuration',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/v1/admin/app-mode
+ * Update app mode configuration
+ */
+router.put('/app-mode', verifyAdminToken, async (req, res) => {
+  try {
+    const { isReviewMode, isProductionMode } = req.body;
+    
+    // Validate input
+    if (typeof isReviewMode !== 'boolean' && typeof isProductionMode !== 'boolean') {
+      return res.status(400).json({
+        error: 'Invalid input',
+        message: 'Both isReviewMode and isProductionMode must be boolean values'
+      });
+    }
+    
+    // Create update object with only provided fields
+    const updateData = {};
+    if (typeof isReviewMode === 'boolean') updateData.isReviewMode = isReviewMode;
+    if (typeof isProductionMode === 'boolean') updateData.isProductionMode = isProductionMode;
+    
+    // Add updatedBy information
+    updateData.updatedBy = 'admin';
+    
+    const updatedConfig = await updateAppModeConfig(updateData);
+    
+    res.json({
+      success: true,
+      message: 'App mode configuration updated successfully',
+      data: updatedConfig
+    });
+  } catch (error) {
+    console.error('Error updating app mode config:', error);
+    res.status(500).json({
+      error: 'Failed to update app mode configuration',
       message: error.message
     });
   }

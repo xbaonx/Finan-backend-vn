@@ -234,20 +234,82 @@
             font-size: 12px;
             transition: all 0.2s;
         }
-
+        
         .copy-btn:hover {
             background-color: #f0f0f0;
         }
-
+        
         .copy-btn.copied {
             color: #4CD964;
         }
-
+        
         .config-section {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-top: 20px;
+        }
+        
+        /* Toggle switch styles */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: #007AFF;
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #007AFF;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .slider.round {
+            border-radius: 34px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
         }
 
         .config-card {
@@ -393,6 +455,31 @@
                             <input type="number" id="exchangeRate" placeholder="24500">
                         </div>
                         <button class="btn" onclick="updateExchangeRate()">Cập nhật tỷ giá</button>
+                    </div>
+
+                    <div class="config-card">
+                        <h3>🚀 Chế độ ứng dụng</h3>
+                        <div class="form-group">
+                            <label>Chế độ Review:</label>
+                            <div class="toggle-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="reviewModeToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span id="reviewModeStatus">Đang tải...</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Chế độ Production:</label>
+                            <div class="toggle-container">
+                                <label class="switch">
+                                    <input type="checkbox" id="productionModeToggle">
+                                    <span class="slider round"></span>
+                                </label>
+                                <span id="productionModeStatus">Đang tải...</span>
+                            </div>
+                        </div>
+                        <button class="btn" onclick="updateAppMode()">Cập nhật chế độ</button>
                     </div>
 
                     <div class="config-card">

@@ -7,6 +7,7 @@ const DEPOSIT_ORDERS_FILE = path.join(STORAGE_DIR, 'deposit_orders.json');
 const WITHDRAW_ORDERS_FILE = path.join(STORAGE_DIR, 'withdraw_orders.json');
 const SWAP_CONFIG_FILE = path.join(STORAGE_DIR, 'swap_config.json');
 const EXCHANGE_RATES_FILE = path.join(STORAGE_DIR, 'exchange_rates.json');
+const APP_MODE_CONFIG_FILE = path.join(STORAGE_DIR, 'app_mode_config.json');
 
 // Default configurations
 const DEFAULT_SWAP_CONFIG = {
@@ -22,6 +23,13 @@ const DEFAULT_EXCHANGE_RATES = {
   USD_TO_VND: 24500, // 1 USD = 24,500 VND
   lastUpdated: new Date().toISOString(),
   source: 'manual' // manual, api, etc.
+};
+
+const DEFAULT_APP_MODE_CONFIG = {
+  isReviewMode: true, // Mặc định là chế độ review
+  isProductionMode: false, // Mặc định không phải chế độ production
+  lastUpdated: new Date().toISOString(),
+  updatedBy: 'system'
 };
 
 /**
@@ -55,6 +63,12 @@ async function initializeStorage() {
     if (!await fs.pathExists(EXCHANGE_RATES_FILE)) {
       await fs.writeJson(EXCHANGE_RATES_FILE, DEFAULT_EXCHANGE_RATES);
       console.log('💱 Initialized exchange rates file');
+    }
+    
+    // Initialize app mode config file
+    if (!await fs.pathExists(APP_MODE_CONFIG_FILE)) {
+      await fs.writeJson(APP_MODE_CONFIG_FILE, DEFAULT_APP_MODE_CONFIG);
+      console.log('🔄 Initialized app mode config file');
     }
 
     console.log('✅ All storage files initialized successfully');
@@ -207,6 +221,7 @@ async function getExchangeRates() {
 async function updateExchangeRates(newRates) {
   try {
     const currentRates = await getExchangeRates();
+    
     const updatedRates = {
       ...currentRates,
       ...newRates,
@@ -217,6 +232,39 @@ async function updateExchangeRates(newRates) {
     return updatedRates;
   } catch (error) {
     console.error('Error updating exchange rates:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get app mode configuration
+ */
+async function getAppModeConfig() {
+  try {
+    return await readJsonFile(APP_MODE_CONFIG_FILE);
+  } catch (error) {
+    console.error('Error getting app mode config:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update app mode configuration
+ */
+async function updateAppModeConfig(newConfig) {
+  try {
+    const currentConfig = await getAppModeConfig();
+    
+    const updatedConfig = {
+      ...currentConfig,
+      ...newConfig,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    await writeJsonFile(APP_MODE_CONFIG_FILE, updatedConfig);
+    return updatedConfig;
+  } catch (error) {
+    console.error('Error updating app mode config:', error);
     throw error;
   }
 }
@@ -232,5 +280,7 @@ module.exports = {
   updateSwapConfig,
   getExchangeRates,
   updateExchangeRates,
+  getAppModeConfig,
+  updateAppModeConfig,
   STORAGE_DIR
 };

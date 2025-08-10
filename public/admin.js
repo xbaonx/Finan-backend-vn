@@ -64,6 +64,7 @@ async function loadDashboard() {
             updateStats(data.dashboard.summary);
             loadOrders();
             loadConfig();
+            loadAppModeConfig(); // Tải cấu hình chế độ ứng dụng
         } else {
             console.error('Dashboard load failed:', data.message);
         }
@@ -413,10 +414,84 @@ function copyToClipboard(text, button) {
         });
 }
 
+// Load app mode config
+async function loadAppModeConfig() {
+    try {
+        const response = await fetch(`${API_BASE}/admin/app-mode`, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update toggle switches
+            document.getElementById('reviewModeToggle').checked = data.data.isReviewMode;
+            document.getElementById('productionModeToggle').checked = data.data.isProductionMode;
+            
+            // Update status text
+            document.getElementById('reviewModeStatus').textContent = 
+                data.data.isReviewMode ? 'Đang bật' : 'Đang tắt';
+            document.getElementById('productionModeStatus').textContent = 
+                data.data.isProductionMode ? 'Đang bật' : 'Đang tắt';
+        } else {
+            console.error('Failed to load app mode config:', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading app mode config:', error);
+    }
+}
+
+// Update app mode config
+async function updateAppMode() {
+    try {
+        const isReviewMode = document.getElementById('reviewModeToggle').checked;
+        const isProductionMode = document.getElementById('productionModeToggle').checked;
+        
+        const response = await fetch(`${API_BASE}/admin/app-mode`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`
+            },
+            body: JSON.stringify({
+                isReviewMode,
+                isProductionMode
+            })
+        });
+        
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('configSuccess', 'Cập nhật chế độ ứng dụng thành công!');
+            
+            // Update status text
+            document.getElementById('reviewModeStatus').textContent = 
+                isReviewMode ? 'Đang bật' : 'Đang tắt';
+            document.getElementById('productionModeStatus').textContent = 
+                isProductionMode ? 'Đang bật' : 'Đang tắt';
+        } else {
+            showError('configError', `Lỗi: ${data.message || 'Không thể cập nhật chế độ ứng dụng'}`);
+        }
+    } catch (error) {
+        showError('configError', `Lỗi kết nối: ${error.message}`);
+    }
+}
+
 // Make functions global for onclick handlers
 window.showTab = showTab;
 window.updateOrderStatus = updateOrderStatus;
 window.updateExchangeRate = updateExchangeRate;
 window.updateSwapConfig = updateSwapConfig;
 window.copyToClipboard = copyToClipboard;
+window.updateAppMode = updateAppMode;
 window.loadOrders = loadOrders;
