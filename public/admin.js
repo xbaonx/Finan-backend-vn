@@ -147,11 +147,16 @@ function displayOrders(orders) {
                     <tr>
                         <td>${order.id.substring(0, 8)}...</td>
                         <td>${order.type === 'deposit' ? '📥 Nạp' : '📤 Rút'}</td>
-                        <td>${order.walletAddress.substring(0, 10)}...</td>
+                        <td>
+                            ${order.walletAddress.substring(0, 10)}...
+                            <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}', this)" title="Copy wallet address">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </td>
                         <td>${order.usdtAmount}</td>
                         <td>${order.vndAmount?.toLocaleString()}</td>
                         <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
-                        <td>${new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
+                        <td>${new Date(order.createdAt).toLocaleString('vi-VN')}</td>
                         <td>
                             <select onchange="updateOrderStatus('${order.id}', this.value, '${order.type}')">
                                 <option value="">Chọn trạng thái</option>
@@ -387,9 +392,31 @@ function handleAuthError() {
     showError('loginError', 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
 }
 
+// Copy to clipboard function
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            // Change button appearance temporarily
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.classList.add('copied');
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('copied');
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy: ', err);
+            alert('Không thể sao chép địa chỉ ví!');
+        });
+}
+
 // Make functions global for onclick handlers
 window.showTab = showTab;
 window.updateOrderStatus = updateOrderStatus;
 window.updateExchangeRate = updateExchangeRate;
 window.updateSwapConfig = updateSwapConfig;
+window.copyToClipboard = copyToClipboard;
 window.loadOrders = loadOrders;

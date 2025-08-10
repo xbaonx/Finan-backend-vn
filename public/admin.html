@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finan Wallet Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -220,6 +221,26 @@
         .status-failed {
             background: #F8D7DA;
             color: #721C24;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: #007AFF;
+            cursor: pointer;
+            margin-left: 5px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .copy-btn.copied {
+            color: #4CD964;
         }
 
         .config-section {
