@@ -18,12 +18,16 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             color: #333;
+            padding-bottom: 50px;
+            overflow-x: hidden;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
+            width: 100%;
+            overflow: hidden;
         }
 
         .header {
@@ -143,6 +147,8 @@
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
+            width: 100%;
+            overflow: hidden;
         }
 
         .chart-card {
@@ -151,6 +157,8 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .chart-title {
@@ -165,6 +173,8 @@
             grid-template-columns: 1fr 1fr;
             gap: 30px;
             margin-bottom: 30px;
+            width: 100%;
+            overflow: hidden;
         }
 
         .table-card {
@@ -173,6 +183,8 @@
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 100%;
+            overflow: hidden;
         }
 
         .table-title {
@@ -185,6 +197,7 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .data-table th,
