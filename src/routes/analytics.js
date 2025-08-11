@@ -2,20 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getStorage } = require('../utils/storage');
 
-// In-memory storage for analytics data (in production, use a proper database)
-let analyticsData = {
-  installs: [],
-  events: [],
-  utmStats: {},
-  dashboard: {
-    totalUsers: 0,
-    activeUsers30d: 0,
-    retentionRate: 0.65,
-    avgRevenuePerUser: 0
-  }
-};
-
-// Helper function to generate UUID
+// Helper function to generate UUID (sử dụng cho backward compatibility)
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0;
@@ -25,7 +12,10 @@ function generateUUID() {
 }
 
 // Helper function to calculate UTM stats
-function calculateUTMStats(timeRange = '30d') {
+async function calculateUTMStats(timeRange = '30d') {
+  const storage = getStorage();
+  const analyticsData = await storage.getAnalyticsData();
+  
   const now = new Date();
   const daysBack = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
   const cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
@@ -91,16 +81,23 @@ function calculateUTMStats(timeRange = '30d') {
 }
 
 // POST /analytics/install - Track app installations
-router.post('/install', (req, res) => {
+router.post('/install', async (req, res) => {
   try {
+    const storage = getStorage();
+    const analyticsData = await storage.getAnalyticsData();
+    
     const installData = {
       ...req.body,
       install_id: generateUUID(),
       tracked_at: new Date().toISOString()
     };
 
-    analyticsData.installs.push(installData);
+    // Thêm install mới vào storage
+    await storage.addInstallData(installData);
+    
+    // Cập nhật dashboard metrics
     analyticsData.dashboard.totalUsers++;
+    await storage.updateAnalyticsData({ dashboard: analyticsData.dashboard });
 
     console.log('📊 Install tracked:', installData);
 
@@ -120,15 +117,19 @@ router.post('/install', (req, res) => {
 });
 
 // POST /analytics/event - Track custom events
-router.post('/event', (req, res) => {
+router.post('/event', async (req, res) => {
   try {
+    const storage = getStorage();
+    const analyticsData = await storage.getAnalyticsData();
+    
     const eventData = {
       ...req.body,
       event_id: generateUUID(),
       tracked_at: new Date().toISOString()
     };
 
-    analyticsData.events.push(eventData);
+    // Thêm event mới vào storage
+    await storage.addEventData(eventData);
 
     // Update dashboard metrics based on event
     if (eventData.event_name === 'first_deposit') {
@@ -136,6 +137,9 @@ router.post('/event', (req, res) => {
       analyticsData.dashboard.avgRevenuePerUser = 
         (analyticsData.dashboard.avgRevenuePerUser * analyticsData.dashboard.totalUsers + depositAmount) / 
         Math.max(analyticsData.dashboard.totalUsers, 1);
+      
+      // Cập nhật dashboard metrics trong storage
+      await storage.updateAnalyticsData({ dashboard: analyticsData.dashboard });
     }
 
     console.log('📊 Event tracked:', eventData);
@@ -156,10 +160,10 @@ router.post('/event', (req, res) => {
 });
 
 // GET /analytics/utm-stats - Get UTM campaign statistics
-router.get('/utm-stats', (req, res) => {
+router.get('/utm-stats', async (req, res) => {
   try {
     const timeRange = req.query.range || '30d';
-    const stats = calculateUTMStats(timeRange);
+    const stats = await calculateUTMStats(timeRange);
 
     res.json(stats);
   } catch (error) {
@@ -173,8 +177,11 @@ router.get('/utm-stats', (req, res) => {
 });
 
 // GET /analytics/dashboard - Get analytics dashboard data
-router.get('/dashboard', (req, res) => {
+router.get('/dashboard', async (req, res) => {
   try {
+    const storage = getStorage();
+    const analyticsData = await storage.getAnalyticsData();
+    
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
 
@@ -185,7 +192,7 @@ router.get('/dashboard', (req, res) => {
     const activeUsers = new Set(activeUserEvents.map(event => event.user_id || 'anonymous')).size;
 
     // Get top sources
-    const utmStats = calculateUTMStats('30d');
+    const utmStats = await calculateUTMStats('30d');
     const topSources = Object.entries(utmStats.sources)
       .sort(([,a], [,b]) => b.installs - a.installs)
       .slice(0, 5)
@@ -245,21 +252,41 @@ router.get('/dashboard', (req, res) => {
 });
 
 // GET /analytics/data - Get raw analytics data (for debugging)
-router.get('/data', (req, res) => {
-  res.json({
-    installs: analyticsData.installs.length,
-    events: analyticsData.events.length,
-    recent_installs: analyticsData.installs.slice(-5),
-    recent_events: analyticsData.events.slice(-5)
-  });
+router.get('/data', async (req, res) => {
+  try {
+    const storage = getStorage();
+    const analyticsData = await storage.getAnalyticsData();
+    
+    res.json({
+      installs: analyticsData.installs.length,
+      events: analyticsData.events.length,
+      recent_installs: analyticsData.installs.slice(-5),
+      recent_events: analyticsData.events.slice(-5)
+    });
+  } catch (error) {
+    console.error('Error getting analytics data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get analytics data',
+      error: error.message
+    });
+  }
 });
 
 // POST /analytics/sample-data - Generate sample data for testing
-router.post('/sample-data', (req, res) => {
+router.post('/sample-data', async (req, res) => {
   try {
+    const storage = getStorage();
+    let analyticsData = await storage.getAnalyticsData();
+    
+    // Xóa dữ liệu hiện tại trước khi tạo dữ liệu mới
+    await storage.clearAnalyticsData();
+    analyticsData = await storage.getAnalyticsData(); // Lấy lại dữ liệu trống
+    
     // Generate sample installs
     const sources = ['facebook', 'telegram', 'tiktok', 'organic'];
     const campaigns = ['crypto_launch', 'defi_promo', 'community_growth'];
+    const installPromises = [];
     
     for (let i = 0; i < 50; i++) {
       const source = sources[Math.floor(Math.random() * sources.length)];
@@ -267,8 +294,7 @@ router.post('/sample-data', (req, res) => {
       const daysAgo = Math.floor(Math.random() * 30);
       const installDate = new Date(Date.now() - (daysAgo * 24 * 60 * 60 * 1000));
       
-      analyticsData.installs.push({
-        install_id: generateUUID(),
+      const installData = {
         utm_source: source,
         utm_medium: source === 'organic' ? 'organic' : 'cpc',
         utm_campaign: source === 'organic' ? 'organic' : campaign,
@@ -283,11 +309,16 @@ router.post('/sample-data', (req, res) => {
         },
         tracked_at: installDate.toISOString(),
         event_type: 'app_install'
-      });
+      };
+      
+      installPromises.push(storage.addInstallData(installData));
     }
+    
+    await Promise.all(installPromises);
 
     // Generate sample events
     const eventTypes = ['wallet_created', 'first_deposit', 'token_swap', 'high_value_action'];
+    const eventPromises = [];
     
     for (let i = 0; i < 80; i++) {
       const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
@@ -331,8 +362,7 @@ router.post('/sample-data', (req, res) => {
           break;
       }
       
-      analyticsData.events.push({
-        event_id: generateUUID(),
+      const eventData = {
         event_name: eventType,
         event_params: eventParams,
         utm_source: source,
@@ -341,8 +371,15 @@ router.post('/sample-data', (req, res) => {
         timestamp: eventDate.toISOString(),
         platform: Math.random() > 0.5 ? 'android' : 'ios',
         tracked_at: eventDate.toISOString()
-      });
+      };
+      
+      eventPromises.push(storage.addEventData(eventData));
     }
+    
+    await Promise.all(eventPromises);
+    
+    // Lấy lại dữ liệu đã cập nhật
+    analyticsData = await storage.getAnalyticsData();
 
     // Update dashboard totals
     analyticsData.dashboard.totalUsers = analyticsData.installs.length;
@@ -354,6 +391,9 @@ router.post('/sample-data', (req, res) => {
     
     analyticsData.dashboard.avgRevenuePerUser = analyticsData.dashboard.totalUsers > 0 ? 
       totalRevenue / analyticsData.dashboard.totalUsers : 0;
+      
+    // Lưu cập nhật dashboard metrics
+    await storage.updateAnalyticsData({ dashboard: analyticsData.dashboard });
 
     console.log('📊 Sample data generated:', {
       installs: analyticsData.installs.length,
@@ -381,23 +421,23 @@ router.post('/sample-data', (req, res) => {
 });
 
 // DELETE /analytics/data - Clear all analytics data (for testing)
-router.delete('/data', (req, res) => {
-  analyticsData = {
-    installs: [],
-    events: [],
-    utmStats: {},
-    dashboard: {
-      totalUsers: 0,
-      activeUsers30d: 0,
-      retentionRate: 0.65,
-      avgRevenuePerUser: 0
-    }
-  };
-
-  res.json({
-    success: true,
-    message: 'Analytics data cleared successfully'
-  });
+router.delete('/data', async (req, res) => {
+  try {
+    const storage = getStorage();
+    await storage.clearAnalyticsData();
+    
+    res.json({
+      success: true,
+      message: 'Analytics data cleared successfully'
+    });
+  } catch (error) {
+    console.error('Error clearing analytics data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to clear analytics data',
+      error: error.message
+    });
+  }
 });
 
 module.exports = router;

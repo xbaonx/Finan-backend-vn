@@ -8,6 +8,7 @@ const WITHDRAW_ORDERS_FILE = path.join(STORAGE_DIR, 'withdraw_orders.json');
 const SWAP_CONFIG_FILE = path.join(STORAGE_DIR, 'swap_config.json');
 const EXCHANGE_RATES_FILE = path.join(STORAGE_DIR, 'exchange_rates.json');
 const APP_MODE_CONFIG_FILE = path.join(STORAGE_DIR, 'app_mode_config.json');
+const ANALYTICS_DATA_FILE = path.join(STORAGE_DIR, 'analytics_data.json');
 
 // Default configurations
 const DEFAULT_SWAP_CONFIG = {
@@ -30,6 +31,19 @@ const DEFAULT_APP_MODE_CONFIG = {
   isProductionMode: false, // Mặc định không phải chế độ production
   lastUpdated: new Date().toISOString(),
   updatedBy: 'system'
+};
+
+const DEFAULT_ANALYTICS_DATA = {
+  installs: [],
+  events: [],
+  utmStats: {},
+  dashboard: {
+    totalUsers: 0,
+    activeUsers30d: 0,
+    retentionRate: 0.65,
+    avgRevenuePerUser: 0
+  },
+  lastUpdated: new Date().toISOString()
 };
 
 /**
@@ -69,6 +83,12 @@ async function initializeStorage() {
     if (!await fs.pathExists(APP_MODE_CONFIG_FILE)) {
       await fs.writeJson(APP_MODE_CONFIG_FILE, DEFAULT_APP_MODE_CONFIG);
       console.log('🔄 Initialized app mode config file');
+    }
+    
+    // Initialize analytics data file
+    if (!await fs.pathExists(ANALYTICS_DATA_FILE)) {
+      await fs.writeJson(ANALYTICS_DATA_FILE, DEFAULT_ANALYTICS_DATA);
+      console.log('📈 Initialized analytics data file');
     }
 
     console.log('✅ All storage files initialized successfully');
@@ -269,18 +289,109 @@ async function updateAppModeConfig(newConfig) {
   }
 }
 
+/**
+ * Get analytics data
+ */
+async function getAnalyticsData() {
+  try {
+    return await readJsonFile(ANALYTICS_DATA_FILE);
+  } catch (error) {
+    console.error('Error getting analytics data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update analytics data
+ */
+async function updateAnalyticsData(data) {
+  try {
+    const currentData = await getAnalyticsData();
+    const updatedData = {
+      ...currentData,
+      ...data,
+      lastUpdated: new Date().toISOString()
+    };
+    await writeJsonFile(ANALYTICS_DATA_FILE, updatedData);
+    return updatedData;
+  } catch (error) {
+    console.error('Error updating analytics data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add install data
+ */
+async function addInstallData(installData) {
+  try {
+    const analyticsData = await getAnalyticsData();
+    const newInstall = {
+      ...installData,
+      id: require('uuid').v4(),
+      install_date: new Date().toISOString()
+    };
+    
+    analyticsData.installs.push(newInstall);
+    await writeJsonFile(ANALYTICS_DATA_FILE, analyticsData);
+    return newInstall;
+  } catch (error) {
+    console.error('Error adding install data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add event data
+ */
+async function addEventData(eventData) {
+  try {
+    const analyticsData = await getAnalyticsData();
+    const newEvent = {
+      ...eventData,
+      id: require('uuid').v4(),
+      timestamp: new Date().toISOString()
+    };
+    
+    analyticsData.events.push(newEvent);
+    await writeJsonFile(ANALYTICS_DATA_FILE, analyticsData);
+    return newEvent;
+  } catch (error) {
+    console.error('Error adding event data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Clear analytics data (for testing)
+ */
+async function clearAnalyticsData() {
+  try {
+    await writeJsonFile(ANALYTICS_DATA_FILE, DEFAULT_ANALYTICS_DATA);
+    return { success: true, message: 'Analytics data cleared successfully' };
+  } catch (error) {
+    console.error('Error clearing analytics data:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   initializeStorage,
-  readJsonFile,
-  writeJsonFile,
-  appendOrder,
-  getOrders,
-  updateOrderStatus,
-  getSwapConfig,
-  updateSwapConfig,
-  getExchangeRates,
-  updateExchangeRates,
-  getAppModeConfig,
-  updateAppModeConfig,
+  getStorage: () => ({
+    getOrders,
+    appendOrder,
+    updateOrderStatus,
+    getSwapConfig,
+    updateSwapConfig,
+    getExchangeRates,
+    updateExchangeRates,
+    getAppModeConfig,
+    updateAppModeConfig,
+    getAnalyticsData,
+    updateAnalyticsData,
+    addInstallData,
+    addEventData,
+    clearAnalyticsData
+  }),
   STORAGE_DIR
 };
