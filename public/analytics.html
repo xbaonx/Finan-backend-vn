@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📊 Finan Analytics Dashboard</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -142,31 +141,7 @@
             color: #f5576c;
         }
 
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-            width: 100%;
-            overflow: hidden;
-        }
 
-        .chart-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-            max-width: 100%;
-            overflow: hidden;
-        }
-
-        .chart-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: #333;
-        }
 
         .data-tables {
             display: grid;
@@ -327,7 +302,6 @@
         }
 
         @media (max-width: 768px) {
-            .charts-grid,
             .data-tables {
                 grid-template-columns: 1fr;
             }
@@ -420,18 +394,7 @@
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-title">UTM Sources Performance</div>
-                    <canvas id="sourcesChart" width="400" height="300"></canvas>
-                </div>
 
-                <div class="chart-card">
-                    <div class="chart-title">Conversion Funnel</div>
-                    <canvas id="funnelChart" width="400" height="300"></canvas>
-                </div>
-            </div>
 
             <!-- Data Tables -->
             <div class="data-tables">
@@ -478,8 +441,6 @@
 
     <script>
         let currentRange = '30d';
-        let sourcesChart = null;
-        let funnelChart = null;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -512,8 +473,7 @@
                 updateOverviewStats(dashboardData.overview);
                 updateSourcesTable(dashboardData.top_sources);
                 updateEventsTable(dashboardData.recent_events);
-                updateSourcesChart(utmData.sources);
-                updateFunnelChart(dashboardData.conversion_funnel);
+
 
                 showLoading(false);
             } catch (error) {
@@ -574,85 +534,7 @@
             `).join('');
         }
 
-        function updateSourcesChart(sources) {
-            const ctx = document.getElementById('sourcesChart').getContext('2d');
-            
-            if (sourcesChart) {
-                sourcesChart.destroy();
-            }
 
-            const sourceNames = Object.keys(sources);
-            const installCounts = Object.values(sources).map(s => s.installs);
-            const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#ffa726'];
-
-            sourcesChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: sourceNames,
-                    datasets: [{
-                        data: installCounts,
-                        backgroundColor: colors.slice(0, sourceNames.length),
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function updateFunnelChart(funnel) {
-            const ctx = document.getElementById('funnelChart').getContext('2d');
-            
-            if (funnelChart) {
-                funnelChart.destroy();
-            }
-
-            funnelChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Installs', 'Wallet Created', 'First Deposit', 'Token Swap'],
-                    datasets: [{
-                        label: 'Users',
-                        data: [funnel.installs, funnel.wallet_created, funnel.first_deposit, funnel.token_swap],
-                        backgroundColor: ['#667eea', '#f093fb', '#4facfe', '#43e97b'],
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
-        }
 
         function refreshData() {
             loadDashboard();
