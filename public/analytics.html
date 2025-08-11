@@ -535,18 +535,20 @@
             hideError();
 
             try {
-                // Load dashboard data
-                const dashboardResponse = await fetch('/api/v1/analytics/dashboard');
+                // Prepare URL parameters for date filtering
+                let urlParams = '';
+                if (customDateRange) {
+                    urlParams = `?startDate=${customDateRange.startDate}&endDate=${customDateRange.endDate}`;
+                } else {
+                    urlParams = `?range=${currentRange}`;
+                }
+                
+                // Load dashboard data with date parameters
+                const dashboardResponse = await fetch(`/analytics/dashboard${urlParams}`);
                 const dashboardData = await dashboardResponse.json();
 
-                // Load UTM stats with appropriate parameters
-                let utmUrl = '/api/v1/analytics/utm-stats';
-                
-                if (customDateRange) {
-                    utmUrl += `?startDate=${customDateRange.startDate}&endDate=${customDateRange.endDate}`;
-                } else {
-                    utmUrl += `?range=${currentRange}`;
-                }
+                // Load UTM stats with the same parameters
+                const utmUrl = `/analytics/utm-stats${urlParams}`;
                 
                 const utmResponse = await fetch(utmUrl);
                 const utmData = await utmResponse.json();

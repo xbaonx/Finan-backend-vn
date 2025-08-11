@@ -275,23 +275,58 @@ router.get('/dashboard', async (req, res) => {
     const analyticsData = await storage.getAnalyticsData();
     
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+    let cutoffDate;
+    
+    // Xác định khoảng thời gian dựa trên tham số
+    if (req.query.startDate && req.query.endDate) {
+      // Sử dụng startDate làm cutoffDate cho khoảng thời gian tùy chỉnh
+      cutoffDate = new Date(req.query.startDate);
+    } else if (req.query.range === 'today') {
+      // Đặt cutoffDate là đầu ngày hôm nay (00:00:00)
+      cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else {
+      // Xử lý các khoảng thời gian khác
+      const daysBack = req.query.range === '7d' ? 7 : req.query.range === '30d' ? 30 : 90;
+      cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+    }
+    
+    // Xác định endDate nếu có
+    let endDate = null;
+    if (req.query.endDate) {
+      endDate = new Date(req.query.endDate);
+      endDate.setHours(23, 59, 59, 999); // Đặt thời gian là cuối ngày
+    }
 
-    // Calculate active users (users with events in last 30 days)
-    const activeUserEvents = analyticsData.events.filter(event => 
-      new Date(event.timestamp) >= thirtyDaysAgo
-    );
-    const activeUsers = new Set(activeUserEvents.map(event => event.user_id || 'anonymous')).size;
+    // Calculate active users (users with events in filtered date range)
+    const filteredEvents = analyticsData.events.filter(event => {
+      const eventDate = new Date(event.timestamp);
+      if (endDate) {
+        // Nếu có cả cutoffDate và endDate, lọc trong khoảng
+        return eventDate >= cutoffDate && eventDate <= endDate;
+      } else {
+        // Nếu chỉ có cutoffDate, lọc từ cutoffDate đến hiện tại
+        return eventDate >= cutoffDate;
+      }
+    });
+    
+    const activeUsers = new Set(filteredEvents.map(event => event.user_id || 'anonymous')).size;
 
-    // Get top sources
-    const utmStats = await calculateUTMStats('30d');
+    // Get top sources for the selected time period
+    let utmStats;
+    if (req.query.startDate && req.query.endDate) {
+      utmStats = await calculateUTMStatsCustomRange(req.query.startDate, req.query.endDate);
+    } else {
+      const timeRange = req.query.range || '30d';
+      utmStats = await calculateUTMStats(timeRange);
+    }
+    
     const topSources = Object.entries(utmStats.sources)
       .sort(([,a], [,b]) => b.installs - a.installs)
       .slice(0, 5)
       .map(([source, data]) => ({ source, ...data }));
 
-    // Get recent events (last 10)
-    const recentEvents = analyticsData.events
+    // Get recent events (last 10) from the filtered events
+    const recentEvents = filteredEvents
       .sort((a, b) => new Date(b.tracked_at) - new Date(a.tracked_at))
       .slice(0, 10)
       .map(event => ({
