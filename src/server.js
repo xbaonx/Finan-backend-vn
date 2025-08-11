@@ -86,6 +86,25 @@ app.use('/api/v1/swap', swapRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 
+// Public app mode endpoint
+app.get('/api/v1/app-mode', async (req, res) => {
+  try {
+    const { getAppModeConfig } = require('./utils/storage');
+    const appModeConfig = await getAppModeConfig();
+    
+    res.json({
+      success: true,
+      appMode: appModeConfig
+    });
+  } catch (error) {
+    console.error('Error getting app mode config:', error);
+    res.status(500).json({
+      error: 'Failed to get app mode configuration',
+      message: error.message
+    });
+  }
+});
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({

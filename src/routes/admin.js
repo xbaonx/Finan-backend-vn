@@ -358,6 +358,65 @@ router.put('/exchange-rates', verifyAdminToken, async (req, res) => {
 });
 
 /**
+ * GET /api/v1/admin/app-mode
+ * Get application mode configuration
+ */
+router.get('/app-mode', verifyAdminToken, async (req, res) => {
+  try {
+    const appModeConfig = await getAppModeConfig();
+    
+    res.json({
+      success: true,
+      appMode: appModeConfig
+    });
+  } catch (error) {
+    console.error('Error getting app mode config:', error);
+    res.status(500).json({
+      error: 'Failed to get app mode configuration',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * PUT /api/v1/admin/app-mode
+ * Update application mode configuration
+ */
+router.put('/app-mode', verifyAdminToken, async (req, res) => {
+  try {
+    const { isReviewMode, isProductionMode } = req.body;
+    
+    const updateData = {};
+    
+    if (isReviewMode !== undefined) {
+      updateData.isReviewMode = Boolean(isReviewMode);
+    }
+    
+    if (isProductionMode !== undefined) {
+      updateData.isProductionMode = Boolean(isProductionMode);
+    }
+    
+    updateData.updatedBy = req.admin.username;
+    
+    const updatedConfig = await updateAppModeConfig(updateData);
+    
+    console.log(`🔄 Admin updated app mode by ${req.admin.username}:`, updateData);
+    
+    res.json({
+      success: true,
+      message: 'App mode configuration updated successfully',
+      appMode: updatedConfig
+    });
+  } catch (error) {
+    console.error('Error updating app mode config:', error);
+    res.status(500).json({
+      error: 'Failed to update app mode configuration',
+      message: error.message
+    });
+  }
+});
+
+/**
  * GET /api/v1/admin/stats
  * Get detailed statistics
  */
