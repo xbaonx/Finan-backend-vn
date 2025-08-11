@@ -11,14 +11,97 @@ function generateUUID() {
   });
 }
 
+// Helper function to calculate UTM stats with custom date range
+async function calculateUTMStatsCustomRange(startDateStr, endDateStr) {
+  const storage = getStorage();
+  const analyticsData = await storage.getAnalyticsData();
+  
+  // Parse dates from strings (YYYY-MM-DD format)
+  const startDate = new Date(startDateStr);
+  // Set endDate to end of the day (23:59:59)
+  const endDate = new Date(endDateStr);
+  endDate.setHours(23, 59, 59, 999);
+  
+  // Filter installs within date range
+  const recentInstalls = analyticsData.installs.filter(install => {
+    const installDate = new Date(install.install_date);
+    return installDate >= startDate && installDate <= endDate;
+  });
+
+  // Filter events within date range
+  const recentEvents = analyticsData.events.filter(event => {
+    const eventDate = new Date(event.timestamp);
+    return eventDate >= startDate && eventDate <= endDate;
+  });
+  
+  // Group by source (same logic as calculateUTMStats)
+  const sources = {};
+  recentInstalls.forEach(install => {
+    const source = install.utm_source || 'organic';
+    if (!sources[source]) {
+      sources[source] = { installs: 0, conversions: 0, revenue: 0 };
+    }
+    sources[source].installs++;
+  });
+
+  // Calculate conversions and revenue from events
+  recentEvents.forEach(event => {
+    const source = event.utm_source || 'organic';
+    if (sources[source]) {
+      if (event.event_name === 'first_deposit' || event.event_name === 'high_value_action') {
+        sources[source].conversions++;
+        sources[source].revenue += event.event_params?.value || event.event_params?.deposit_amount || 0;
+      }
+    }
+  });
+
+  // Group by campaign
+  const campaigns = {};
+  recentInstalls.forEach(install => {
+    const campaign = install.utm_campaign;
+    if (campaign) {
+      if (!campaigns[campaign]) {
+        campaigns[campaign] = { installs: 0, cost: 0, roi: 0 };
+      }
+      campaigns[campaign].installs++;
+      campaigns[campaign].cost = campaigns[campaign].installs * 2.5; // Assumed cost per install
+    }
+  });
+
+  // Calculate ROI for campaigns
+  Object.keys(campaigns).forEach(campaign => {
+    const campaignRevenue = recentEvents
+      .filter(event => event.utm_campaign === campaign)
+      .reduce((sum, event) => sum + (event.event_params?.value || event.event_params?.deposit_amount || 0), 0);
+    
+    campaigns[campaign].roi = campaigns[campaign].cost > 0 ? 
+      (campaignRevenue / campaigns[campaign].cost) : 0;
+  });
+
+  return {
+    total_installs: recentInstalls.length,
+    sources,
+    campaigns,
+    time_range: `custom (${startDateStr} to ${endDateStr})`
+  };
+}
+
 // Helper function to calculate UTM stats
 async function calculateUTMStats(timeRange = '30d') {
   const storage = getStorage();
   const analyticsData = await storage.getAnalyticsData();
   
   const now = new Date();
-  const daysBack = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
-  const cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+  let cutoffDate;
+  
+  if (timeRange === 'today') {
+    // Đặt cutoffDate là đầu ngày hôm nay (00:00:00)
+    cutoffDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  } else {
+    // Xử lý các khoảng thời gian khác như cũ
+    const daysBack = timeRange === '7d' ? 7 : timeRange === '30d' ? 30 : 90;
+    cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+  }
 
   const recentInstalls = analyticsData.installs.filter(install => 
     new Date(install.install_date) >= cutoffDate
@@ -162,8 +245,17 @@ router.post('/event', async (req, res) => {
 // GET /analytics/utm-stats - Get UTM campaign statistics
 router.get('/utm-stats', async (req, res) => {
   try {
-    const timeRange = req.query.range || '30d';
-    const stats = await calculateUTMStats(timeRange);
+    let stats;
+    
+    // Kiểm tra nếu có tham số startDate và endDate
+    if (req.query.startDate && req.query.endDate) {
+      // Sử dụng khoảng thời gian tùy chỉnh
+      stats = await calculateUTMStatsCustomRange(req.query.startDate, req.query.endDate);
+    } else {
+      // Sử dụng khoảng thời gian cố định
+      const timeRange = req.query.range || '30d';
+      stats = await calculateUTMStats(timeRange);
+    }
 
     res.json(stats);
   } catch (error) {

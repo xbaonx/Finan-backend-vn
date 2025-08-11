@@ -242,6 +242,39 @@
             background: #667eea;
             color: white;
         }
+        
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: 20px;
+        }
+        
+        .date-range-picker input[type="date"] {
+            padding: 8px;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-family: inherit;
+        }
+        
+        .apply-date-btn {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .apply-date-btn:hover {
+            background: #5a6fd6;
+            transform: translateY(-2px);
+        }
 
         .refresh-btn {
             padding: 10px 20px;
@@ -326,9 +359,20 @@
 
         <div class="controls">
             <div class="time-selector">
+                <button class="time-btn" data-range="today">Hôm nay</button>
                 <button class="time-btn" data-range="7d">7 Days</button>
                 <button class="time-btn active" data-range="30d">30 Days</button>
                 <button class="time-btn" data-range="90d">90 Days</button>
+            </div>
+            <div class="date-range-picker">
+                <label for="start-date">Từ:</label>
+                <input type="date" id="start-date" name="start-date">
+                <label for="end-date">Đến:</label>
+                <input type="date" id="end-date" name="end-date">
+                <button class="apply-date-btn" onclick="applyCustomDateRange()">
+                    <i class="fas fa-check"></i>
+                    Áp dụng
+                </button>
             </div>
             <button class="refresh-btn" onclick="refreshData()">
                 <i class="fas fa-sync-alt"></i>
@@ -441,9 +485,17 @@
 
     <script>
         let currentRange = '30d';
+        let customDateRange = null;
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default dates for date picker
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('end-date').valueAsDate = today;
+            document.getElementById('start-date').valueAsDate = thirtyDaysAgo;
             loadDashboard();
             
             // Time range selector
@@ -451,12 +503,33 @@
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    currentRange = this.dataset.range;
+                    currentRange = this.getAttribute('data-range');
+                    customDateRange = null; // Reset custom date range when using preset ranges
                     loadDashboard();
                 });
             });
         });
 
+        // Function to apply custom date range
+        function applyCustomDateRange() {
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+            
+            if (!startDate || !endDate) {
+                alert('Vui lòng chọn ngày bắt đầu và ngày kết thúc');
+                return;
+            }
+            
+            // Reset active state of time buttons
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Set custom date range
+            customDateRange = { startDate, endDate };
+            
+            // Load dashboard with custom date range
+            loadDashboard();
+        }
+        
         async function loadDashboard() {
             showLoading(true);
             hideError();
@@ -466,8 +539,16 @@
                 const dashboardResponse = await fetch('/api/v1/analytics/dashboard');
                 const dashboardData = await dashboardResponse.json();
 
-                // Load UTM stats
-                const utmResponse = await fetch(`/api/v1/analytics/utm-stats?range=${currentRange}`);
+                // Load UTM stats with appropriate parameters
+                let utmUrl = '/api/v1/analytics/utm-stats';
+                
+                if (customDateRange) {
+                    utmUrl += `?startDate=${customDateRange.startDate}&endDate=${customDateRange.endDate}`;
+                } else {
+                    utmUrl += `?range=${currentRange}`;
+                }
+                
+                const utmResponse = await fetch(utmUrl);
                 const utmData = await utmResponse.json();
 
                 updateOverviewStats(dashboardData.overview);
