@@ -358,6 +358,31 @@ router.put('/exchange-rates', verifyAdminToken, async (req, res) => {
 });
 
 /**
+ * GET /api/v1/admin/config
+ * Get all configurations (swap config and exchange rates)
+ */
+router.get('/config', verifyAdminToken, async (req, res) => {
+  try {
+    const swapConfig = await getSwapConfig();
+    const exchangeRates = await getExchangeRates();
+    
+    res.json({
+      success: true,
+      config: {
+        swapConfig,
+        exchangeRates
+      }
+    });
+  } catch (error) {
+    console.error('Error getting config:', error);
+    res.status(500).json({
+      error: 'Failed to get configuration',
+      message: error.message
+    });
+  }
+});
+
+/**
  * GET /api/v1/admin/app-mode
  * Get application mode configuration
  */
