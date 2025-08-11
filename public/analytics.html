@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 Finan Analytics Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-icon.users { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .stat-icon.active { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .stat-icon.retention { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .stat-icon.revenue { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .stat-change {
+            font-size: 0.9rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            background: rgba(67, 233, 123, 0.1);
+            color: #43e97b;
+        }
+
+        .stat-change.negative {
+            background: rgba(245, 87, 108, 0.1);
+            color: #f5576c;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .data-tables {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .source-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .source-facebook { background: #e3f2fd; color: #1976d2; }
+        .source-telegram { background: #e8f5e8; color: #388e3c; }
+        .source-tiktok { background: #fce4ec; color: #c2185b; }
+        .source-organic { background: #f3e5f5; color: #7b1fa2; }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .time-selector {
+            display: flex;
+            gap: 10px;
+        }
+
+        .time-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .time-btn.active,
+        .time-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .refresh-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(245, 87, 108, 0.1);
+            color: #f5576c;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .charts-grid,
+            .data-tables {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .time-selector {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-chart-line"></i> Finan Analytics Dashboard</h1>
+            <p>UTM Tracking & Performance Analytics</p>
+        </div>
+
+        <div class="controls">
+            <div class="time-selector">
+                <button class="time-btn" data-range="7d">7 Days</button>
+                <button class="time-btn active" data-range="30d">30 Days</button>
+                <button class="time-btn" data-range="90d">90 Days</button>
+            </div>
+            <button class="refresh-btn" onclick="refreshData()">
+                <i class="fas fa-sync-alt"></i>
+                Refresh Data
+            </button>
+        </div>
+
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading analytics data...</p>
+        </div>
+
+        <div class="error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>Failed to load analytics data. Please try again.</p>
+        </div>
+
+        <div id="dashboard-content">
+            <!-- Overview Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-title">Total Users</div>
+                    </div>
+                    <div class="stat-value" id="total-users">0</div>
+                    <div class="stat-change positive" id="users-change">+0%</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon active">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stat-title">Active Users (30d)</div>
+                    </div>
+                    <div class="stat-value" id="active-users">0</div>
+                    <div class="stat-change positive" id="active-change">+0%</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon retention">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="stat-title">Retention Rate</div>
+                    </div>
+                    <div class="stat-value" id="retention-rate">0%</div>
+                    <div class="stat-change positive" id="retention-change">+0%</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-title">Avg Revenue/User</div>
+                    </div>
+                    <div class="stat-value" id="avg-revenue">$0</div>
+                    <div class="stat-change positive" id="revenue-change">+0%</div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <div class="chart-title">UTM Sources Performance</div>
+                    <canvas id="sourcesChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">Conversion Funnel</div>
+                    <canvas id="funnelChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Data Tables -->
+            <div class="data-tables">
+                <div class="table-card">
+                    <div class="table-title">Top UTM Sources</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Installs</th>
+                                <th>Conversions</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sources-table">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #666;">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-title">Recent Events</div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Source</th>
+                                <th>Value</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="events-table">
+                            <tr>
+                                <td colspan="4" style="text-align: center; color: #666;">No events yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRange = '30d';
+        let sourcesChart = null;
+        let funnelChart = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard();
+            
+            // Time range selector
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentRange = this.dataset.range;
+                    loadDashboard();
+                });
+            });
+        });
+
+        async function loadDashboard() {
+            showLoading(true);
+            hideError();
+
+            try {
+                // Load dashboard data
+                const dashboardResponse = await fetch('/api/v1/analytics/dashboard');
+                const dashboardData = await dashboardResponse.json();
+
+                // Load UTM stats
+                const utmResponse = await fetch(`/api/v1/analytics/utm-stats?range=${currentRange}`);
+                const utmData = await utmResponse.json();
+
+                updateOverviewStats(dashboardData.overview);
+                updateSourcesTable(dashboardData.top_sources);
+                updateEventsTable(dashboardData.recent_events);
+                updateSourcesChart(utmData.sources);
+                updateFunnelChart(dashboardData.conversion_funnel);
+
+                showLoading(false);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showError();
+                showLoading(false);
+            }
+        }
+
+        function updateOverviewStats(overview) {
+            document.getElementById('total-users').textContent = overview.total_users.toLocaleString();
+            document.getElementById('active-users').textContent = overview.active_users_30d.toLocaleString();
+            document.getElementById('retention-rate').textContent = (overview.retention_rate * 100).toFixed(1) + '%';
+            document.getElementById('avg-revenue').textContent = '$' + parseFloat(overview.avg_revenue_per_user).toFixed(2);
+        }
+
+        function updateSourcesTable(sources) {
+            const tbody = document.getElementById('sources-table');
+            
+            if (!sources || sources.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No data available</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sources.map(source => `
+                <tr>
+                    <td>
+                        <span class="source-badge source-${source.source}">
+                            ${source.source}
+                        </span>
+                    </td>
+                    <td>${source.installs.toLocaleString()}</td>
+                    <td>${source.conversions.toLocaleString()}</td>
+                    <td>$${source.revenue.toFixed(2)}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateEventsTable(events) {
+            const tbody = document.getElementById('events-table');
+            
+            if (!events || events.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">No events yet</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = events.map(event => `
+                <tr>
+                    <td>${event.event_name.replace('_', ' ')}</td>
+                    <td>
+                        <span class="source-badge source-${event.utm_source}">
+                            ${event.utm_source}
+                        </span>
+                    </td>
+                    <td>$${event.value.toFixed(2)}</td>
+                    <td>${new Date(event.timestamp).toLocaleTimeString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        function updateSourcesChart(sources) {
+            const ctx = document.getElementById('sourcesChart').getContext('2d');
+            
+            if (sourcesChart) {
+                sourcesChart.destroy();
+            }
+
+            const sourceNames = Object.keys(sources);
+            const installCounts = Object.values(sources).map(s => s.installs);
+            const colors = ['#667eea', '#f093fb', '#4facfe', '#43e97b', '#ffa726'];
+
+            sourcesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: sourceNames,
+                    datasets: [{
+                        data: installCounts,
+                        backgroundColor: colors.slice(0, sourceNames.length),
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateFunnelChart(funnel) {
+            const ctx = document.getElementById('funnelChart').getContext('2d');
+            
+            if (funnelChart) {
+                funnelChart.destroy();
+            }
+
+            funnelChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Installs', 'Wallet Created', 'First Deposit', 'Token Swap'],
+                    datasets: [{
+                        label: 'Users',
+                        data: [funnel.installs, funnel.wallet_created, funnel.first_deposit, funnel.token_swap],
+                        backgroundColor: ['#667eea', '#f093fb', '#4facfe', '#43e97b'],
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshData() {
+            loadDashboard();
+        }
+
+        function showLoading(show) {
+            const loading = document.querySelector('.loading');
+            const content = document.getElementById('dashboard-content');
+            
+            if (show) {
+                loading.classList.add('show');
+                content.style.opacity = '0.5';
+            } else {
+                loading.classList.remove('show');
+                content.style.opacity = '1';
+            }
+        }
+
+        function showError() {
+            document.querySelector('.error').classList.add('show');
+        }
+
+        function hideError() {
+            document.querySelector('.error').classList.remove('show');
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(loadDashboard, 5 * 60 * 1000);
+    </script>
+</body>
+</html>

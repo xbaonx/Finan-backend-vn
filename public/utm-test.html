@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 UTM Tracking Test Page</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .utm-links {
+            display: grid;
+            gap: 15px;
+        }
+
+        .utm-link {
+            display: block;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .utm-link:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .utm-link .source {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        .utm-link .campaign {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .test-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .test-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .test-btn.install {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .test-btn.deposit {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+        }
+
+        .test-btn.swap {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .test-btn.wallet {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .log-section {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .timestamp {
+            color: #888;
+        }
+
+        .success {
+            color: #00ff00;
+        }
+
+        .error {
+            color: #ff4444;
+        }
+
+        .clear-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-link {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-link:hover {
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-flask"></i> UTM Tracking Test</h1>
+            <p>Test UTM tracking and analytics functionality</p>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-link"></i> UTM Test Links</h2>
+            <p>Click these links to simulate different UTM sources:</p>
+            <div class="utm-links">
+                <a href="?utm_source=facebook&utm_medium=cpc&utm_campaign=crypto_launch&utm_content=video_ad" class="utm-link" onclick="trackInstall(this)">
+                    <div class="source">Facebook Ads</div>
+                    <div class="campaign">crypto_launch - video_ad</div>
+                </a>
+                <a href="?utm_source=telegram&utm_medium=social&utm_campaign=community_growth&utm_content=channel_post" class="utm-link" onclick="trackInstall(this)">
+                    <div class="source">Telegram</div>
+                    <div class="campaign">community_growth - channel_post</div>
+                </a>
+                <a href="?utm_source=tiktok&utm_medium=cpc&utm_campaign=defi_promo&utm_content=crypto_video" class="utm-link" onclick="trackInstall(this)">
+                    <div class="source">TikTok Ads</div>
+                    <div class="campaign">defi_promo - crypto_video</div>
+                </a>
+                <a href="?utm_source=organic&utm_medium=organic&utm_campaign=organic" class="utm-link" onclick="trackInstall(this)">
+                    <div class="source">Organic</div>
+                    <div class="campaign">Direct traffic</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-mouse-pointer"></i> Event Testing</h2>
+            <p>Test different user events:</p>
+            <div class="test-buttons">
+                <button class="test-btn install" onclick="testInstallEvent()">
+                    <i class="fas fa-download"></i>
+                    App Install
+                </button>
+                <button class="test-btn wallet" onclick="testWalletEvent()">
+                    <i class="fas fa-wallet"></i>
+                    Wallet Created
+                </button>
+                <button class="test-btn deposit" onclick="testDepositEvent()">
+                    <i class="fas fa-coins"></i>
+                    First Deposit
+                </button>
+                <button class="test-btn swap" onclick="testSwapEvent()">
+                    <i class="fas fa-exchange-alt"></i>
+                    Token Swap
+                </button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><i class="fas fa-terminal"></i> Activity Log</h2>
+            <button class="clear-btn" onclick="clearLog()">Clear Log</button>
+            <div class="log-section" id="activity-log">
+                <div class="log-entry">
+                    <span class="timestamp">[Ready]</span> UTM Tracking Test initialized
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="/analytics" class="dashboard-link">
+                <i class="fas fa-chart-line"></i>
+                View Analytics Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Get UTM parameters from URL
+        function getUTMParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                utm_source: urlParams.get('utm_source') || 'organic',
+                utm_medium: urlParams.get('utm_medium') || 'organic',
+                utm_campaign: urlParams.get('utm_campaign') || 'organic',
+                utm_content: urlParams.get('utm_content') || '',
+                utm_term: urlParams.get('utm_term') || ''
+            };
+        }
+
+        // Log activity
+        function logActivity(message, type = 'info') {
+            const log = document.getElementById('activity-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="timestamp">[${timestamp}]</span> 
+                <span class="${type}">${message}</span>
+            `;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        // Track install event
+        async function trackInstall(link) {
+            event.preventDefault();
+            
+            const url = new URL(link.href);
+            const utmParams = {
+                utm_source: url.searchParams.get('utm_source'),
+                utm_medium: url.searchParams.get('utm_medium'),
+                utm_campaign: url.searchParams.get('utm_campaign'),
+                utm_content: url.searchParams.get('utm_content'),
+                utm_term: url.searchParams.get('utm_term')
+            };
+
+            logActivity(`Tracking install from ${utmParams.utm_source}...`);
+
+            try {
+                const response = await fetch('/api/v1/analytics/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...utmParams,
+                        platform: 'web',
+                        install_date: new Date().toISOString(),
+                        device_info: {
+                            platform: 'web',
+                            app_version: '1.0.0',
+                            device_model: navigator.userAgent,
+                            os_version: navigator.platform
+                        },
+                        event_type: 'app_install'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    logActivity(`✅ Install tracked successfully (ID: ${result.install_id})`, 'success');
+                    // Update URL without refresh
+                    window.history.pushState({}, '', link.href);
+                } else {
+                    logActivity(`❌ Failed to track install: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logActivity(`❌ Error tracking install: ${error.message}`, 'error');
+            }
+        }
+
+        // Test install event
+        async function testInstallEvent() {
+            const utmParams = getUTMParams();
+            logActivity(`Testing install event with UTM source: ${utmParams.utm_source}...`);
+
+            try {
+                const response = await fetch('/api/v1/analytics/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ...utmParams,
+                        platform: 'android',
+                        install_date: new Date().toISOString(),
+                        device_info: {
+                            platform: 'android',
+                            app_version: '1.0.0',
+                            device_model: 'Test Device',
+                            os_version: '12.0'
+                        },
+                        event_type: 'app_install'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    logActivity(`✅ Install event tracked (ID: ${result.install_id})`, 'success');
+                } else {
+                    logActivity(`❌ Failed to track install: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logActivity(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test wallet creation event
+        async function testWalletEvent() {
+            const utmParams = getUTMParams();
+            logActivity('Testing wallet creation event...');
+
+            try {
+                const response = await fetch('/api/v1/analytics/event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_name: 'wallet_created',
+                        event_params: {
+                            wallet_type: 'new',
+                            event_category: 'onboarding'
+                        },
+                        ...utmParams,
+                        timestamp: new Date().toISOString(),
+                        platform: 'android'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    logActivity(`✅ Wallet creation event tracked (ID: ${result.event_id})`, 'success');
+                } else {
+                    logActivity(`❌ Failed to track wallet event: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logActivity(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test deposit event
+        async function testDepositEvent() {
+            const utmParams = getUTMParams();
+            const amount = Math.floor(Math.random() * 500) + 50; // Random amount 50-550
+            logActivity(`Testing first deposit event ($${amount})...`);
+
+            try {
+                const response = await fetch('/api/v1/analytics/event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_name: 'first_deposit',
+                        event_params: {
+                            deposit_amount: amount,
+                            deposit_token: 'USDT',
+                            event_category: 'monetization',
+                            value: amount,
+                            days_since_install: Math.floor(Math.random() * 7) + 1
+                        },
+                        ...utmParams,
+                        timestamp: new Date().toISOString(),
+                        platform: 'android'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    logActivity(`✅ Deposit event tracked: $${amount} (ID: ${result.event_id})`, 'success');
+                } else {
+                    logActivity(`❌ Failed to track deposit: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logActivity(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test swap event
+        async function testSwapEvent() {
+            const utmParams = getUTMParams();
+            const amount = Math.floor(Math.random() * 200) + 25; // Random amount 25-225
+            logActivity(`Testing token swap event ($${amount})...`);
+
+            try {
+                const response = await fetch('/api/v1/analytics/event', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_name: 'token_swap',
+                        event_params: {
+                            from_token: 'USDT',
+                            to_token: 'BNB',
+                            swap_amount: amount,
+                            event_category: 'trading',
+                            value: amount
+                        },
+                        ...utmParams,
+                        timestamp: new Date().toISOString(),
+                        platform: 'android'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    logActivity(`✅ Swap event tracked: $${amount} (ID: ${result.event_id})`, 'success');
+                } else {
+                    logActivity(`❌ Failed to track swap: ${result.message}`, 'error');
+                }
+            } catch (error) {
+                logActivity(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Clear log
+        function clearLog() {
+            const log = document.getElementById('activity-log');
+            log.innerHTML = '<div class="log-entry"><span class="timestamp">[Cleared]</span> Activity log cleared</div>';
+        }
+
+        // Initialize with current UTM params
+        document.addEventListener('DOMContentLoaded', function() {
+            const utmParams = getUTMParams();
+            if (utmParams.utm_source !== 'organic') {
+                logActivity(`UTM parameters detected: ${utmParams.utm_source} / ${utmParams.utm_campaign}`, 'success');
+            }
+        });
+    </script>
+</body>
+</html>

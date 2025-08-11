@@ -8,6 +8,7 @@ require('dotenv').config();
 const depositWithdrawRoutes = require('./routes/depositWithdraw');
 const swapRoutes = require('./routes/swap');
 const adminRoutes = require('./routes/admin');
+const analyticsRoutes = require('./routes/analytics');
 const { initializeStorage } = require('./utils/storage');
 
 const app = express();
@@ -69,10 +70,21 @@ app.get('/admin', (req, res) => {
   res.sendFile('admin.html', { root: 'public' });
 });
 
+// Analytics dashboard route
+app.get('/analytics', (req, res) => {
+  res.sendFile('analytics.html', { root: 'public' });
+});
+
+// UTM test page route
+app.get('/utm-test', (req, res) => {
+  res.sendFile('utm-test.html', { root: 'public' });
+});
+
 // API Routes
 app.use('/api/v1/deposit-withdraw', depositWithdrawRoutes);
 app.use('/api/v1/swap', swapRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
