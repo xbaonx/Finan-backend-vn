@@ -377,6 +377,20 @@ async function clearAnalyticsData() {
 
 module.exports = {
   initializeStorage,
+  getOrders,
+  appendOrder,
+  updateOrderStatus,
+  getSwapConfig,
+  updateSwapConfig,
+  getExchangeRates,
+  updateExchangeRates,
+  getAppModeConfig,
+  updateAppModeConfig,
+  getAnalyticsData,
+  updateAnalyticsData,
+  addInstallData,
+  addEventData,
+  clearAnalyticsData,
   getStorage: () => ({
     getOrders,
     appendOrder,
