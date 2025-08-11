@@ -92,10 +92,11 @@ app.get('/api/v1/app-mode', async (req, res) => {
     const { getAppModeConfig } = require('./utils/storage');
     const appModeConfig = await getAppModeConfig();
     
-    res.json({
-      success: true,
-      appMode: appModeConfig
-    });
+    // Return just the boolean value based on the mode
+    // If isReviewMode is true, return true; otherwise return false
+    const isReviewMode = Boolean(appModeConfig.isReviewMode);
+    
+    res.json(isReviewMode);
   } catch (error) {
     console.error('Error getting app mode config:', error);
     res.status(500).json({
