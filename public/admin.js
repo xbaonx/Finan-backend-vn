@@ -430,14 +430,14 @@ async function loadAppModeConfig() {
         
         if (data.success) {
             // Update toggle switches
-            document.getElementById('reviewModeToggle').checked = data.data.isReviewMode;
-            document.getElementById('productionModeToggle').checked = data.data.isProductionMode;
+            document.getElementById('reviewModeToggle').checked = data.appMode.isReviewMode;
+            document.getElementById('productionModeToggle').checked = data.appMode.isProductionMode;
             
             // Update status text
             document.getElementById('reviewModeStatus').textContent = 
-                data.data.isReviewMode ? 'Đang bật' : 'Đang tắt';
+                data.appMode.isReviewMode ? 'Đang bật' : 'Đang tắt';
             document.getElementById('productionModeStatus').textContent = 
-                data.data.isProductionMode ? 'Đang bật' : 'Đang tắt';
+                data.appMode.isProductionMode ? 'Đang bật' : 'Đang tắt';
         } else {
             console.error('Failed to load app mode config:', data.message);
         }
@@ -479,6 +479,9 @@ async function updateAppMode() {
                 isReviewMode ? 'Đang bật' : 'Đang tắt';
             document.getElementById('productionModeStatus').textContent = 
                 isProductionMode ? 'Đang bật' : 'Đang tắt';
+                
+            // Thông báo cho người dùng rằng trạng thái đã được lưu trên disk
+            console.log('Trạng thái chế độ ứng dụng đã được lưu trên disk của Render');
         } else {
             showError('configError', `Lỗi: ${data.message || 'Không thể cập nhật chế độ ứng dụng'}`);
         }
