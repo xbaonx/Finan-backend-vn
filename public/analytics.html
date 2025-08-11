@@ -544,11 +544,11 @@
                 }
                 
                 // Load dashboard data with date parameters
-                const dashboardResponse = await fetch(`/analytics/dashboard${urlParams}`);
+                const dashboardResponse = await fetch(`/api/v1/analytics/dashboard${urlParams}`);
                 const dashboardData = await dashboardResponse.json();
 
                 // Load UTM stats with the same parameters
-                const utmUrl = `/analytics/utm-stats${urlParams}`;
+                const utmUrl = `/api/v1/analytics/utm-stats${urlParams}`;
                 
                 const utmResponse = await fetch(utmUrl);
                 const utmData = await utmResponse.json();
