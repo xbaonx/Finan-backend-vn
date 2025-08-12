@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chính sách bảo mật - Finan Wallet</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-decoration: none;
+        }
+
+        .logo img {
+            height: 40px;
+            width: auto;
+        }
+
+        .back-btn {
+            color: #00d4ff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #00d4ff;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #00d4ff;
+            color: #0f0f23;
+        }
+
+        .content {
+            padding: 40px 0;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section p {
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .section ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section li {
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .highlight {
+            background: rgba(0, 212, 255, 0.1);
+            padding: 1rem;
+            border-left: 3px solid #00d4ff;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+
+        .footer {
+            background: rgba(15, 15, 35, 0.95);
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <nav class="nav container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="Finan Wallet Logo">
+                Finan Wallet
+            </a>
+            <a href="/" class="back-btn">
+                <i class="fas fa-arrow-left"></i> Về trang chủ
+            </a>
+        </nav>
+    </header>
+
+    <main class="content">
+        <div class="container">
+            <h1 class="page-title">Chính sách bảo mật</h1>
+            
+            <div class="highlight">
+                <p><strong>Cập nhật lần cuối:</strong> 12 tháng 8, 2024</p>
+                <p>Finan Wallet cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của người dùng một cách tuyệt đối.</p>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-info-circle"></i> Tổng quan</h2>
+                <p>Finan Wallet là một ví tiền điện tử phi tập trung (decentralized wallet) được thiết kế với nguyên tắc "Privacy by Design". Chúng tôi không thu thập, lưu trữ hay chia sẻ bất kỳ thông tin cá nhân nào của người dùng.</p>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-shield-alt"></i> Thông tin chúng tôi KHÔNG thu thập</h2>
+                <ul>
+                    <li><strong>Private Keys:</strong> Khóa riêng tư được tạo và lưu trữ hoàn toàn trên thiết bị của bạn</li>
+                    <li><strong>Seed Phrases:</strong> Cụm từ khôi phục 12 từ chỉ tồn tại trên thiết bị của bạn</li>
+                    <li><strong>Địa chỉ ví:</strong> Chúng tôi không theo dõi hay lưu trữ địa chỉ ví của bạn</li>
+                    <li><strong>Lịch sử giao dịch:</strong> Tất cả giao dịch được lưu trữ cục bộ trên thiết bị</li>
+                    <li><strong>Thông tin cá nhân:</strong> Không yêu cầu tên, email, số điện thoại hay KYC</li>
+                    <li><strong>Dữ liệu sinh trắc học:</strong> Không thu thập vân tay, khuôn mặt hay dữ liệu sinh học</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-database"></i> Dữ liệu được lưu trữ cục bộ</h2>
+                <p>Các thông tin sau được mã hóa và lưu trữ chỉ trên thiết bị của bạn:</p>
+                <ul>
+                    <li>Thông tin cấu hình ví (tên ví, cài đặt giao diện)</li>
+                    <li>Lịch sử giao dịch cục bộ</li>
+                    <li>Danh sách token được theo dõi</li>
+                    <li>Cài đặt ứng dụng (ngôn ngữ, chế độ tối/sáng)</li>
+                </ul>
+                <div class="highlight">
+                    <p><strong>Lưu ý quan trọng:</strong> Tất cả dữ liệu này sẽ bị mất nếu bạn gỡ cài đặt ứng dụng mà không sao lưu cụm từ khôi phục.</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-network-wired"></i> Kết nối mạng</h2>
+                <p>Ứng dụng chỉ kết nối với các dịch vụ sau để hoạt động:</p>
+                <ul>
+                    <li><strong>Binance Smart Chain RPC:</strong> Để thực hiện giao dịch blockchain</li>
+                    <li><strong>Binance API:</strong> Để lấy giá token real-time (không gửi thông tin cá nhân)</li>
+                    <li><strong>1inch DEX API:</strong> Để tìm tỷ giá swap tốt nhất (chỉ gửi thông tin token)</li>
+                </ul>
+                <p>Tất cả các kết nối này đều ẩn danh và không liên kết với danh tính của bạn.</p>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-lock"></i> Bảo mật dữ liệu</h2>
+                <ul>
+                    <li><strong>Mã hóa AES-256:</strong> Tất cả dữ liệu nhạy cảm được mã hóa với chuẩn quân sự</li>
+                    <li><strong>Không có server backend:</strong> Không có máy chủ trung tâm để hack</li>
+                    <li><strong>Mã nguồn mở:</strong> Có thể kiểm tra và audit bởi cộng đồng</li>
+                    <li><strong>Cập nhật bảo mật:</strong> Thường xuyên cập nhật để vá các lỗ hổng</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-cookie-bite"></i> Cookies và Tracking</h2>
+                <p>Finan Wallet <strong>KHÔNG</strong> sử dụng:</p>
+                <ul>
+                    <li>Cookies theo dõi</li>
+                    <li>Google Analytics hay công cụ phân tích nào</li>
+                    <li>Facebook Pixel hay tracking pixel</li>
+                    <li>Fingerprinting thiết bị</li>
+                    <li>Quảng cáo có mục tiêu</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-child"></i> Bảo vệ trẻ em</h2>
+                <p>Ứng dụng không được thiết kế cho trẻ em dưới 18 tuổi. Chúng tôi không cố ý thu thập thông tin từ trẻ em. Nếu phát hiện trẻ em sử dụng ứng dụng, phụ huynh nên giám sát và hướng dẫn việc sử dụng an toàn.</p>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-gavel"></i> Tuân thủ pháp luật</h2>
+                <p>Do không thu thập dữ liệu cá nhân, Finan Wallet tự động tuân thủ:</p>
+                <ul>
+                    <li>GDPR (General Data Protection Regulation)</li>
+                    <li>CCPA (California Consumer Privacy Act)</li>
+                    <li>Luật An ninh mạng Việt Nam</li>
+                    <li>Các quy định bảo vệ dữ liệu cá nhân khác</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-edit"></i> Thay đổi chính sách</h2>
+                <p>Chúng tôi có thể cập nhật chính sách này để phản ánh các thay đổi trong ứng dụng. Mọi thay đổi sẽ được thông báo qua:</p>
+                <ul>
+                    <li>Cập nhật ứng dụng với ghi chú thay đổi</li>
+                    <li>Thông báo trên trang web chính thức</li>
+                    <li>Email thông báo (nếu bạn đã đăng ký nhận tin)</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2><i class="fas fa-envelope"></i> Liên hệ</h2>
+                <p>Nếu bạn có câu hỏi về chính sách bảo mật này, vui lòng liên hệ:</p>
+                <ul>
+                    <li><strong>Email:</strong> support@finan.digital</li>
+                    <li><strong>Telegram:</strong> @FinanWalletSupport</li>
+                    <li><strong>Website:</strong> <a href="/" style="color: #00d4ff;">finan.digital</a></li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Finan Wallet - finan.digital - Cam kết bảo vệ quyền riêng tư tuyệt đối 🔒</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -80,6 +80,16 @@ app.get('/utm-test', (req, res) => {
   res.sendFile('utm-test.html', { root: 'public' });
 });
 
+// Privacy policy route
+app.get('/privacy', (req, res) => {
+  res.sendFile('privacy.html', { root: 'public' });
+});
+
+// Terms of service route
+app.get('/terms', (req, res) => {
+  res.sendFile('terms.html', { root: 'public' });
+});
+
 // API Routes
 app.use('/api/v1/deposit-withdraw', depositWithdrawRoutes);
 app.use('/api/v1/swap', swapRoutes);
