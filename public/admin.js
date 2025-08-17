@@ -168,7 +168,14 @@ async function loadWithdraws(page = 1) {
 
 // Display orders table with pagination
 function displayOrdersWithPagination(orders, container, orderType, totalItems, currentPageNum) {
-    console.log('displayOrdersWithPagination called:', {orderType, totalItems, currentPageNum, ordersLength: orders.length});
+    console.log('displayOrdersWithPagination called:', {
+        orderType, 
+        totalItems, 
+        currentPageNum, 
+        ordersLength: orders.length,
+        itemsPerPage,
+        totalPages: Math.ceil(totalItems / itemsPerPage)
+    });
     
     if (orders.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #8E8E93; padding: 40px;">Không có đơn hàng nào</p>';
@@ -252,14 +259,20 @@ function displayOrdersWithPagination(orders, container, orderType, totalItems, c
     
     // Add pagination controls
     const totalPages = Math.ceil(totalItems / itemsPerPage);
+    console.log('Creating pagination:', {totalPages, totalItems, itemsPerPage});
     const paginationHtml = createPaginationControls(orderType, currentPageNum, totalPages);
+    console.log('Pagination HTML length:', paginationHtml.length);
     
     container.innerHTML = table + paginationHtml;
 }
 
 // Create pagination controls
 function createPaginationControls(orderType, currentPageNum, totalPages) {
-    if (totalPages <= 1) return '';
+    console.log('createPaginationControls called:', {orderType, currentPageNum, totalPages});
+    if (totalPages <= 1) {
+        console.log('No pagination needed: totalPages <= 1');
+        return '';
+    }
     
     let paginationHtml = `
         <div class="pagination-container" style="margin-top: 20px; text-align: center;">
