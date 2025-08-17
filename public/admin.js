@@ -227,12 +227,21 @@ function toggleSelectAll(orderType) {
 
 // Update delete button state
 function updateDeleteButton(orderType) {
+    console.log('updateDeleteButton called with orderType:', orderType);
+    
     const containerSelector = orderType === 'deposit' ? '#depositsContainer' : '#withdrawsContainer';
     const checkedBoxes = document.querySelectorAll(`${containerSelector} .bulk-checkbox:checked`);
-    const deleteButton = document.getElementById(`deleteSelected${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}`);
+    const buttonId = `deleteSelected${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}`;
+    const deleteButton = document.getElementById(buttonId);
+    
+    console.log('containerSelector:', containerSelector);
+    console.log('checkedBoxes count:', checkedBoxes.length);
+    console.log('buttonId:', buttonId);
+    console.log('deleteButton found:', !!deleteButton);
     
     if (deleteButton) {
         deleteButton.disabled = checkedBoxes.length === 0;
+        console.log('Button disabled:', deleteButton.disabled);
     }
 }
 
@@ -269,9 +278,16 @@ async function deleteOrder(orderType, orderId) {
 
 // Delete selected orders
 async function deleteSelectedOrders(orderType) {
+    console.log('deleteSelectedOrders called with orderType:', orderType);
+    
     const containerSelector = orderType === 'deposit' ? '#depositsContainer' : '#withdrawsContainer';
+    console.log('containerSelector:', containerSelector);
+    
     const checkedBoxes = document.querySelectorAll(`${containerSelector} .bulk-checkbox:checked`);
+    console.log('checkedBoxes found:', checkedBoxes.length);
+    
     const orderIds = Array.from(checkedBoxes).map(cb => cb.dataset.orderId);
+    console.log('orderIds:', orderIds);
     
     if (orderIds.length === 0) {
         alert('Vui lòng chọn ít nhất một đơn hàng để xóa');
