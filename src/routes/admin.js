@@ -170,32 +170,58 @@ router.get('/orders', verifyAdminToken, async (req, res) => {
     const { type, status, limit = 50, offset = 0 } = req.query;
 
     let orders = [];
+    let totalCount = 0;
 
     if (type === 'deposit') {
-      orders = await getOrders('deposit', parseInt(limit), parseInt(offset));
+      // Get total count first
+      const allDeposits = await getOrders('deposit', 10000);
+      let filteredDeposits = allDeposits;
+      
+      // Filter by status if provided
+      if (status) {
+        filteredDeposits = allDeposits.filter(order => order.status === status);
+      }
+      
+      totalCount = filteredDeposits.length;
+      orders = filteredDeposits.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
+      
     } else if (type === 'withdraw') {
-      orders = await getOrders('withdraw', parseInt(limit), parseInt(offset));
+      // Get total count first
+      const allWithdraws = await getOrders('withdraw', 10000);
+      let filteredWithdraws = allWithdraws;
+      
+      // Filter by status if provided
+      if (status) {
+        filteredWithdraws = allWithdraws.filter(order => order.status === status);
+      }
+      
+      totalCount = filteredWithdraws.length;
+      orders = filteredWithdraws.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
+      
     } else {
       // Get both types
-      const deposits = await getOrders('deposit', 1000);
-      const withdraws = await getOrders('withdraw', 1000);
-      orders = [...deposits, ...withdraws]
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(parseInt(offset), parseInt(offset) + parseInt(limit));
-    }
-
-    // Filter by status if provided
-    if (status) {
-      orders = orders.filter(order => order.status === status);
+      const deposits = await getOrders('deposit', 10000);
+      const withdraws = await getOrders('withdraw', 10000);
+      let allOrders = [...deposits, ...withdraws]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      // Filter by status if provided
+      if (status) {
+        allOrders = allOrders.filter(order => order.status === status);
+      }
+      
+      totalCount = allOrders.length;
+      orders = allOrders.slice(parseInt(offset), parseInt(offset) + parseInt(limit));
     }
 
     res.json({
       success: true,
       orders,
+      total: totalCount,
       pagination: {
         limit: parseInt(limit),
         offset: parseInt(offset),
-        total: orders.length
+        total: totalCount
       }
     });
 
