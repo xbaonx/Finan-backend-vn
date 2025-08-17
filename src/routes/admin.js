@@ -573,6 +573,85 @@ router.put('/app-mode', verifyAdminToken, async (req, res) => {
 });
 
 /**
+ * Test endpoint for bulk delete
+ */
+router.get('/orders/:orderType/bulk-test', (req, res) => {
+  res.json({ message: 'Bulk delete endpoint is working', orderType: req.params.orderType });
+});
+
+/**
+ * DELETE /api/v1/admin/orders/:orderType/bulk
+ * Delete multiple orders - MUST BE BEFORE :orderId route to avoid conflicts
+ */
+router.delete('/orders/:orderType/bulk', verifyAdminToken, async (req, res) => {
+  try {
+    const { orderType } = req.params;
+    const { orderIds } = req.body;
+    
+    if (!['deposit', 'withdraw'].includes(orderType)) {
+      return res.status(400).json({
+        error: 'Invalid order type',
+        message: 'Order type must be deposit or withdraw'
+      });
+    }
+
+    if (!Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        error: 'Invalid order IDs',
+        message: 'orderIds must be a non-empty array'
+      });
+    }
+
+    // Read directly from file to get all orders
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { STORAGE_DIR } = require('../utils/storage');
+    
+    const filePath = orderType === 'deposit' ? 
+      path.join(STORAGE_DIR, 'deposit_orders.json') :
+      path.join(STORAGE_DIR, 'withdraw_orders.json');
+    
+    const orders = await fs.readJson(filePath);
+    const deletedOrders = [];
+    
+    // Filter out orders to delete
+    const remainingOrders = orders.filter(order => {
+      if (orderIds.includes(order.id)) {
+        deletedOrders.push(order);
+        return false;
+      }
+      return true;
+    });
+    
+    if (deletedOrders.length === 0) {
+      return res.status(404).json({
+        error: 'No orders found',
+        message: 'None of the specified orders were found'
+      });
+    }
+
+    // Write back to file
+    await fs.writeJson(filePath, remainingOrders, { spaces: 2 });
+
+    console.log(`🗑️ Bulk delete: ${deletedOrders.length} ${orderType} orders by admin`);
+
+    res.json({
+      success: true,
+      message: `${deletedOrders.length} orders deleted successfully`,
+      deletedCount: deletedOrders.length,
+      deletedOrders
+    });
+
+  } catch (error) {
+    console.error('Error bulk deleting orders:', error);
+    res.status(500).json({
+      error: 'Failed to delete orders',
+      message: error.message
+    });
+  }
+});
+
+/**
  * DELETE /api/v1/admin/orders/:orderType/:orderId
  * Delete a single order
  */
