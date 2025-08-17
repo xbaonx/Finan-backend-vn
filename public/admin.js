@@ -168,6 +168,8 @@ async function loadWithdraws(page = 1) {
 
 // Display orders table with pagination
 function displayOrdersWithPagination(orders, container, orderType, totalItems, currentPageNum) {
+    console.log('displayOrdersWithPagination called:', {orderType, totalItems, currentPageNum, ordersLength: orders.length});
+    
     if (orders.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #8E8E93; padding: 40px;">Không có đơn hàng nào</p>';
         return;
