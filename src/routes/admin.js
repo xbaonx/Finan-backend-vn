@@ -630,6 +630,13 @@ router.delete('/orders/:orderType/:orderId', verifyAdminToken, async (req, res) 
 });
 
 /**
+ * Test endpoint for bulk delete
+ */
+router.get('/orders/:orderType/bulk-test', (req, res) => {
+  res.json({ message: 'Bulk delete endpoint is working', orderType: req.params.orderType });
+});
+
+/**
  * DELETE /api/v1/admin/orders/:orderType/bulk
  * Delete multiple orders
  */
