@@ -328,6 +328,40 @@
             display: none !important;
         }
 
+        /* Checkbox styles for bulk selection */
+        .bulk-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .select-all-checkbox {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background: #FF3B30;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #D70015;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
         .loading {
             text-align: center;
             padding: 40px;
@@ -361,6 +395,15 @@
             
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .orders-table {
+                font-size: 14px;
+            }
+            
+            .orders-table th,
+            .orders-table td {
+                padding: 8px 4px;
             }
         }
     </style>
@@ -413,32 +456,48 @@
 
             <!-- Tabs -->
             <div class="tabs">
-                <button class="tab active" onclick="showTab('orders')">📋 Đơn hàng</button>
+                <button class="tab active" onclick="showTab('deposits')">💰 Nạp tiền</button>
+                <button class="tab" onclick="showTab('withdraws')">💸 Rút tiền</button>
                 <button class="tab" onclick="showTab('config')">⚙️ Cấu hình</button>
                 <button class="tab" onclick="showTab('stats')">📊 Thống kê</button>
             </div>
 
-            <!-- Orders Tab -->
-            <div id="ordersTab" class="tab-content">
+            <!-- Deposits Tab -->
+            <div id="depositsTab" class="tab-content">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2>📋 Quản lý đơn hàng</h2>
+                    <h2>💰 Quản lý đơn nạp tiền</h2>
                     <div>
-                        <select id="orderTypeFilter" onchange="loadOrders()">
-                            <option value="">Tất cả loại</option>
-                            <option value="deposit">Nạp tiền</option>
-                            <option value="withdraw">Rút tiền</option>
-                        </select>
-                        <select id="orderStatusFilter" onchange="loadOrders()" style="margin-left: 10px;">
+                        <select id="depositStatusFilter" onchange="loadDeposits()">
                             <option value="">Tất cả trạng thái</option>
                             <option value="pending">Chờ xử lý</option>
                             <option value="completed">Hoàn thành</option>
                             <option value="failed">Thất bại</option>
                         </select>
-                        <button class="btn" onclick="loadOrders()" style="margin-left: 10px;">🔄 Làm mới</button>
+                        <button class="btn" onclick="loadDeposits()" style="margin-left: 10px;">🔄 Làm mới</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedOrders('deposit')" style="margin-left: 10px;" id="deleteSelectedDeposits" disabled>🗑️ Xóa đã chọn</button>
                     </div>
                 </div>
-                <div id="ordersLoading" class="loading hidden">Đang tải đơn hàng...</div>
-                <div id="ordersContainer"></div>
+                <div id="depositsLoading" class="loading hidden">Đang tải đơn nạp tiền...</div>
+                <div id="depositsContainer"></div>
+            </div>
+
+            <!-- Withdraws Tab -->
+            <div id="withdrawsTab" class="tab-content hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2>💸 Quản lý đơn rút tiền</h2>
+                    <div>
+                        <select id="withdrawStatusFilter" onchange="loadWithdraws()">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ xử lý</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="failed">Thất bại</option>
+                        </select>
+                        <button class="btn" onclick="loadWithdraws()" style="margin-left: 10px;">🔄 Làm mới</button>
+                        <button class="btn btn-danger" onclick="deleteSelectedOrders('withdraw')" style="margin-left: 10px;" id="deleteSelectedWithdraws" disabled>🗑️ Xóa đã chọn</button>
+                    </div>
+                </div>
+                <div id="withdrawsLoading" class="loading hidden">Đang tải đơn rút tiền...</div>
+                <div id="withdrawsContainer"></div>
             </div>
 
             <!-- Config Tab -->

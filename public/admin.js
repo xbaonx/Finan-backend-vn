@@ -62,7 +62,7 @@ async function loadDashboard() {
         
         if (data.success) {
             updateStats(data.dashboard.summary);
-            loadOrders();
+            loadDeposits();
             loadConfig();
             loadAppModeConfig(); // Tải cấu hình chế độ ứng dụng
         } else {
@@ -81,19 +81,17 @@ function updateStats(summary) {
     document.getElementById('totalUSDT').textContent = `${(summary.totalUSDTDeposited || 0).toFixed(2)}`;
 }
 
-// Load orders
-async function loadOrders() {
-    const loading = document.getElementById('ordersLoading');
-    const container = document.getElementById('ordersContainer');
+// Load deposits
+async function loadDeposits() {
+    const loading = document.getElementById('depositsLoading');
+    const container = document.getElementById('depositsContainer');
     
     loading.classList.remove('hidden');
     
     try {
-        const typeFilter = document.getElementById('orderTypeFilter').value;
-        const statusFilter = document.getElementById('orderStatusFilter').value;
+        const statusFilter = document.getElementById('depositStatusFilter').value;
         
-        let url = `${API_BASE}/admin/orders?limit=50`;
-        if (typeFilter) url += `&type=${typeFilter}`;
+        let url = `${API_BASE}/admin/orders?limit=50&type=deposit`;
         if (statusFilter) url += `&status=${statusFilter}`;
         
         const response = await fetch(url, {
@@ -108,22 +106,57 @@ async function loadOrders() {
         const data = await response.json();
         
         if (data.success) {
-            currentOrders = data.orders;
-            displayOrders(data.orders);
+            displayOrders(data.orders, container, 'deposit');
         } else {
-            container.innerHTML = `<div class="error">Lỗi tải đơn hàng: ${data.message || 'Không thể tải đơn hàng'}</div>`;
+            container.innerHTML = '<p>Lỗi tải đơn nạp tiền</p>';
         }
     } catch (error) {
-        container.innerHTML = `<div class="error">Lỗi tải đơn hàng: ${error.message}</div>`;
+        console.error('Error loading deposits:', error);
+        container.innerHTML = '<p>Lỗi kết nối</p>';
+    } finally {
+        loading.classList.add('hidden');
+    }
+}
+
+// Load withdraws
+async function loadWithdraws() {
+    const loading = document.getElementById('withdrawsLoading');
+    const container = document.getElementById('withdrawsContainer');
+    
+    loading.classList.remove('hidden');
+    
+    try {
+        const statusFilter = document.getElementById('withdrawStatusFilter').value;
+        
+        let url = `${API_BASE}/admin/orders?limit=50&type=withdraw`;
+        if (statusFilter) url += `&status=${statusFilter}`;
+        
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        if (response.status === 401) {
+            handleAuthError();
+            return;
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            displayOrders(data.orders, container, 'withdraw');
+        } else {
+            container.innerHTML = '<p>Lỗi tải đơn rút tiền</p>';
+        }
+    } catch (error) {
+        console.error('Error loading withdraws:', error);
+        container.innerHTML = '<p>Lỗi kết nối</p>';
     } finally {
         loading.classList.add('hidden');
     }
 }
 
 // Display orders table
-function displayOrders(orders) {
-    const container = document.getElementById('ordersContainer');
-    
+function displayOrders(orders, container, orderType) {
     if (orders.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #8E8E93; padding: 40px;">Không có đơn hàng nào</p>';
         return;
@@ -133,8 +166,8 @@ function displayOrders(orders) {
         <table class="orders-table">
             <thead>
                 <tr>
+                    <th><input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll('${orderType}')"></th>
                     <th>ID</th>
-                    <th>Loại</th>
                     <th>Địa chỉ ví</th>
                     <th>USDT</th>
                     <th>VND</th>
@@ -146,25 +179,29 @@ function displayOrders(orders) {
             <tbody>
                 ${orders.map(order => `
                     <tr>
-                        <td>${order.id.substring(0, 8)}...</td>
-                        <td>${order.type === 'deposit' ? '📥 Nạp' : '📤 Rút'}</td>
+                        <td><input type="checkbox" class="bulk-checkbox" data-order-id="${order.id}" onchange="updateDeleteButton('${orderType}')"></td>
                         <td>
-                            <span style="font-family: monospace; font-size: 0.9em;">${order.walletAddress}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}', this)" title="Copy wallet address">
-                                <i class="fas fa-copy"></i>
-                            </button>
+                            <span style="font-family: monospace; font-size: 12px; color: #666;">${order.id.substring(0, 8)}...</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${order.id}')">📋</button>
                         </td>
-                        <td>${order.usdtAmount}</td>
-                        <td>${order.vndAmount?.toLocaleString()}</td>
-                        <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
-                        <td>${new Date(order.createdAt).toLocaleString('vi-VN')}</td>
                         <td>
-                            <select onchange="updateOrderStatus('${order.id}', this.value, '${order.type}')">
-                                <option value="">Chọn trạng thái</option>
-                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
-                                <option value="failed" ${order.status === 'failed' ? 'selected' : ''}>Thất bại</option>
-                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
-                            </select>
+                            <span style="font-family: monospace; font-size: 12px;">${order.walletAddress.substring(0, 10)}...${order.walletAddress.substring(-6)}</span>
+                            <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}')">📋</button>
+                        </td>
+                        <td><strong>${order.usdtAmount}</strong></td>
+                        <td>${order.vndAmount?.toLocaleString() || 'N/A'}</td>
+                        <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
+                        <td>${new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <select onchange="updateOrderStatus('${order.id}', this.value)" ${order.status === 'completed' ? 'disabled' : ''}>
+                                    <option value="">Chọn hành động</option>
+                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+                                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
+                                    <option value="failed" ${order.status === 'failed' ? 'selected' : ''}>Thất bại</option>
+                                </select>
+                                <button class="delete-btn" onclick="deleteOrder('${orderType}', '${order.id}')">🗑️</button>
+                            </div>
                         </td>
                     </tr>
                 `).join('')}
@@ -173,6 +210,102 @@ function displayOrders(orders) {
     `;
     
     container.innerHTML = table;
+}
+
+// Toggle select all checkboxes
+function toggleSelectAll(orderType) {
+    const selectAllCheckbox = document.querySelector(`.select-all-checkbox`);
+    const bulkCheckboxes = document.querySelectorAll(`.bulk-checkbox`);
+    
+    bulkCheckboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    
+    updateDeleteButton(orderType);
+}
+
+// Update delete button state
+function updateDeleteButton(orderType) {
+    const checkedBoxes = document.querySelectorAll(`.bulk-checkbox:checked`);
+    const deleteButton = document.getElementById(`deleteSelected${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}`);
+    
+    if (deleteButton) {
+        deleteButton.disabled = checkedBoxes.length === 0;
+    }
+}
+
+// Delete single order
+async function deleteOrder(orderType, orderId) {
+    if (!confirm('Bạn có chắc chắn muốn xóa đơn hàng này?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/orders/${orderType}/${orderId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess('Order deleted successfully');
+            if (orderType === 'deposit') {
+                loadDeposits();
+            } else {
+                loadWithdraws();
+            }
+            loadDashboard(); // Refresh stats
+        } else {
+            showError('configError', data.message || 'Failed to delete order');
+        }
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        showError('configError', 'Error deleting order: ' + error.message);
+    }
+}
+
+// Delete selected orders
+async function deleteSelectedOrders(orderType) {
+    const checkedBoxes = document.querySelectorAll(`.bulk-checkbox:checked`);
+    const orderIds = Array.from(checkedBoxes).map(cb => cb.dataset.orderId);
+    
+    if (orderIds.length === 0) {
+        alert('Vui lòng chọn ít nhất một đơn hàng để xóa');
+        return;
+    }
+    
+    if (!confirm(`Bạn có chắc chắn muốn xóa ${orderIds.length} đơn hàng đã chọn?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE}/admin/orders/${orderType}/bulk`, {
+            method: 'DELETE',
+            headers: { 
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ orderIds })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showSuccess(`${data.deletedCount} orders deleted successfully`);
+            if (orderType === 'deposit') {
+                loadDeposits();
+            } else {
+                loadWithdraws();
+            }
+            loadDashboard(); // Refresh stats
+        } else {
+            showError('configError', data.message || 'Failed to delete orders');
+        }
+    } catch (error) {
+        console.error('Error bulk deleting orders:', error);
+        showError('configError', 'Error deleting orders: ' + error.message);
+    }
 }
 
 // Update order status
@@ -295,7 +428,7 @@ async function updateSwapConfig() {
     }
 }
 
-// Tab navigation
+// Tab switching
 function showTab(tabName) {
     // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -303,18 +436,24 @@ function showTab(tabName) {
     });
     
     // Remove active class from all tab buttons
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.classList.remove('active');
+    document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.remove('active');
     });
     
     // Show selected tab
     document.getElementById(tabName + 'Tab').classList.remove('hidden');
     
-    // Add active class to clicked tab
-    document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
-
-    // Load tab-specific data
-    if (tabName === 'stats') {
+    // Add active class to clicked button
+    event.target.classList.add('active');
+    
+    // Load data for specific tabs
+    if (tabName === 'deposits') {
+        loadDeposits();
+    } else if (tabName === 'withdraws') {
+        loadWithdraws();
+    } else if (tabName === 'config') {
+        loadConfig();
+    } else if (tabName === 'stats') {
         loadDetailedStats();
     }
 }

@@ -572,4 +572,133 @@ router.put('/app-mode', verifyAdminToken, async (req, res) => {
   }
 });
 
+/**
+ * DELETE /api/v1/admin/orders/:orderType/:orderId
+ * Delete a single order
+ */
+router.delete('/orders/:orderType/:orderId', verifyAdminToken, async (req, res) => {
+  try {
+    const { orderType, orderId } = req.params;
+    
+    if (!['deposit', 'withdraw'].includes(orderType)) {
+      return res.status(400).json({
+        error: 'Invalid order type',
+        message: 'Order type must be deposit or withdraw'
+      });
+    }
+
+    // Get current orders
+    const orders = await getOrders(orderType, 1000);
+    const orderIndex = orders.findIndex(order => order.id === orderId);
+    
+    if (orderIndex === -1) {
+      return res.status(404).json({
+        error: 'Order not found',
+        message: `Order ${orderId} not found`
+      });
+    }
+
+    // Remove the order from the array
+    const deletedOrder = orders.splice(orderIndex, 1)[0];
+    
+    // Write back to file
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { STORAGE_DIR } = require('../utils/storage');
+    
+    const filePath = orderType === 'deposit' ? 
+      path.join(STORAGE_DIR, 'deposit_orders.json') :
+      path.join(STORAGE_DIR, 'withdraw_orders.json');
+    
+    await fs.writeJson(filePath, orders, { spaces: 2 });
+
+    console.log(`🗑️ Order deleted: ${orderType} ${orderId} by admin`);
+
+    res.json({
+      success: true,
+      message: 'Order deleted successfully',
+      deletedOrder
+    });
+
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    res.status(500).json({
+      error: 'Failed to delete order',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * DELETE /api/v1/admin/orders/:orderType/bulk
+ * Delete multiple orders
+ */
+router.delete('/orders/:orderType/bulk', verifyAdminToken, async (req, res) => {
+  try {
+    const { orderType } = req.params;
+    const { orderIds } = req.body;
+    
+    if (!['deposit', 'withdraw'].includes(orderType)) {
+      return res.status(400).json({
+        error: 'Invalid order type',
+        message: 'Order type must be deposit or withdraw'
+      });
+    }
+
+    if (!Array.isArray(orderIds) || orderIds.length === 0) {
+      return res.status(400).json({
+        error: 'Invalid order IDs',
+        message: 'orderIds must be a non-empty array'
+      });
+    }
+
+    // Get current orders
+    const orders = await getOrders(orderType, 1000);
+    const deletedOrders = [];
+    
+    // Filter out orders to delete
+    const remainingOrders = orders.filter(order => {
+      if (orderIds.includes(order.id)) {
+        deletedOrders.push(order);
+        return false;
+      }
+      return true;
+    });
+    
+    if (deletedOrders.length === 0) {
+      return res.status(404).json({
+        error: 'No orders found',
+        message: 'None of the specified orders were found'
+      });
+    }
+
+    // Write back to file
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { STORAGE_DIR } = require('../utils/storage');
+    
+    const filePath = orderType === 'deposit' ? 
+      path.join(STORAGE_DIR, 'deposit_orders.json') :
+      path.join(STORAGE_DIR, 'withdraw_orders.json');
+    
+    await fs.writeJson(filePath, remainingOrders, { spaces: 2 });
+
+    console.log(`🗑️ Bulk delete: ${deletedOrders.length} ${orderType} orders by admin`);
+
+    res.json({
+      success: true,
+      message: `${deletedOrders.length} orders deleted successfully`,
+      deletedCount: deletedOrders.length,
+      deletedOrders
+    });
+
+  } catch (error) {
+    console.error('Error bulk deleting orders:', error);
+    res.status(500).json({
+      error: 'Failed to delete orders',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
