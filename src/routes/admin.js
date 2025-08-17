@@ -587,8 +587,16 @@ router.delete('/orders/:orderType/:orderId', verifyAdminToken, async (req, res) 
       });
     }
 
-    // Get current orders
-    const orders = await getOrders(orderType, 1000);
+    // Read directly from file to get all orders
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { STORAGE_DIR } = require('../utils/storage');
+    
+    const filePath = orderType === 'deposit' ? 
+      path.join(STORAGE_DIR, 'deposit_orders.json') :
+      path.join(STORAGE_DIR, 'withdraw_orders.json');
+    
+    const orders = await fs.readJson(filePath);
     const orderIndex = orders.findIndex(order => order.id === orderId);
     
     if (orderIndex === -1) {
@@ -602,14 +610,6 @@ router.delete('/orders/:orderType/:orderId', verifyAdminToken, async (req, res) 
     const deletedOrder = orders.splice(orderIndex, 1)[0];
     
     // Write back to file
-    const fs = require('fs-extra');
-    const path = require('path');
-    const { STORAGE_DIR } = require('../utils/storage');
-    
-    const filePath = orderType === 'deposit' ? 
-      path.join(STORAGE_DIR, 'deposit_orders.json') :
-      path.join(STORAGE_DIR, 'withdraw_orders.json');
-    
     await fs.writeJson(filePath, orders, { spaces: 2 });
 
     console.log(`🗑️ Order deleted: ${orderType} ${orderId} by admin`);
@@ -652,8 +652,16 @@ router.delete('/orders/:orderType/bulk', verifyAdminToken, async (req, res) => {
       });
     }
 
-    // Get current orders
-    const orders = await getOrders(orderType, 1000);
+    // Read directly from file to get all orders
+    const fs = require('fs-extra');
+    const path = require('path');
+    const { STORAGE_DIR } = require('../utils/storage');
+    
+    const filePath = orderType === 'deposit' ? 
+      path.join(STORAGE_DIR, 'deposit_orders.json') :
+      path.join(STORAGE_DIR, 'withdraw_orders.json');
+    
+    const orders = await fs.readJson(filePath);
     const deletedOrders = [];
     
     // Filter out orders to delete
@@ -673,14 +681,6 @@ router.delete('/orders/:orderType/bulk', verifyAdminToken, async (req, res) => {
     }
 
     // Write back to file
-    const fs = require('fs-extra');
-    const path = require('path');
-    const { STORAGE_DIR } = require('../utils/storage');
-    
-    const filePath = orderType === 'deposit' ? 
-      path.join(STORAGE_DIR, 'deposit_orders.json') :
-      path.join(STORAGE_DIR, 'withdraw_orders.json');
-    
     await fs.writeJson(filePath, remainingOrders, { spaces: 2 });
 
     console.log(`🗑️ Bulk delete: ${deletedOrders.length} ${orderType} orders by admin`);

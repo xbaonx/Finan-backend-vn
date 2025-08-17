@@ -249,7 +249,7 @@ async function deleteOrder(orderType, orderId) {
         const data = await response.json();
         
         if (data.success) {
-            showSuccess('Order deleted successfully');
+            showSuccess('configSuccess', 'Đã xóa đơn hàng thành công!');
             if (orderType === 'deposit') {
                 loadDeposits();
             } else {
@@ -257,7 +257,7 @@ async function deleteOrder(orderType, orderId) {
             }
             loadDashboard(); // Refresh stats
         } else {
-            showError('configError', data.message || 'Failed to delete order');
+            showError('configError', data.message || 'Không thể xóa đơn hàng');
         }
     } catch (error) {
         console.error('Error deleting order:', error);
@@ -292,7 +292,7 @@ async function deleteSelectedOrders(orderType) {
         const data = await response.json();
         
         if (data.success) {
-            showSuccess(`${data.deletedCount} orders deleted successfully`);
+            showSuccess('configSuccess', `Đã xóa ${data.deletedCount} đơn hàng thành công!`);
             if (orderType === 'deposit') {
                 loadDeposits();
             } else {
@@ -300,7 +300,7 @@ async function deleteSelectedOrders(orderType) {
             }
             loadDashboard(); // Refresh stats
         } else {
-            showError('configError', data.message || 'Failed to delete orders');
+            showError('configError', data.message || 'Không thể xóa đơn hàng');
         }
     } catch (error) {
         console.error('Error bulk deleting orders:', error);
