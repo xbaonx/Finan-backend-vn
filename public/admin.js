@@ -162,49 +162,77 @@ function displayOrders(orders, container, orderType) {
         return;
     }
     
+    // Different table headers for deposit vs withdraw
+    const headers = orderType === 'withdraw' ? `
+        <th><input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll('${orderType}')"></th>
+        <th>ID</th>
+        <th>Địa chỉ ví</th>
+        <th>USDT</th>
+        <th>VND</th>
+        <th>Thông tin NH</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Hành động</th>
+    ` : `
+        <th><input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll('${orderType}')"></th>
+        <th>ID</th>
+        <th>Địa chỉ ví</th>
+        <th>USDT</th>
+        <th>VND</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Hành động</th>
+    `;
+
     const table = `
         <table class="orders-table">
             <thead>
                 <tr>
-                    <th><input type="checkbox" class="select-all-checkbox" onchange="toggleSelectAll('${orderType}')"></th>
-                    <th>ID</th>
-                    <th>Địa chỉ ví</th>
-                    <th>USDT</th>
-                    <th>VND</th>
-                    <th>Trạng thái</th>
-                    <th>Ngày tạo</th>
-                    <th>Hành động</th>
+                    ${headers}
                 </tr>
             </thead>
             <tbody>
-                ${orders.map(order => `
-                    <tr>
-                        <td><input type="checkbox" class="bulk-checkbox" data-order-id="${order.id}" onchange="updateDeleteButton('${orderType}')"></td>
+                ${orders.map(order => {
+                    const bankAccountCell = orderType === 'withdraw' && order.bankAccount ? `
                         <td>
-                            <span style="font-family: monospace; font-size: 12px; color: #666;">${order.id.substring(0, 8)}...</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${order.id}')">📋</button>
-                        </td>
-                        <td>
-                            <span style="font-family: monospace; font-size: 12px;">${order.walletAddress.substring(0, 10)}...${order.walletAddress.substring(-6)}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}')">📋</button>
-                        </td>
-                        <td><strong>${order.usdtAmount}</strong></td>
-                        <td>${order.vndAmount?.toLocaleString() || 'N/A'}</td>
-                        <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
-                        <td>${new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <select onchange="updateOrderStatus('${order.id}', this.value)" ${order.status === 'completed' ? 'disabled' : ''}>
-                                    <option value="">Chọn hành động</option>
-                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
-                                    <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
-                                    <option value="failed" ${order.status === 'failed' ? 'selected' : ''}>Thất bại</option>
-                                </select>
-                                <button class="delete-btn" onclick="deleteOrder('${orderType}', '${order.id}')">🗑️</button>
+                            <div style="font-size: 11px; line-height: 1.3;">
+                                <div><strong>${order.bankAccount.bankName || 'N/A'}</strong></div>
+                                <div>${order.bankAccount.accountNumber || 'N/A'}</div>
+                                <div style="color: #666;">${order.bankAccount.accountName || 'N/A'}</div>
                             </div>
                         </td>
-                    </tr>
-                `).join('')}
+                    ` : orderType === 'withdraw' ? '<td style="color: #999;">Không có</td>' : '';
+                    
+                    return `
+                        <tr>
+                            <td><input type="checkbox" class="bulk-checkbox" data-order-id="${order.id}" onchange="updateDeleteButton('${orderType}')"></td>
+                            <td>
+                                <span style="font-family: monospace; font-size: 12px; color: #666;">${order.id.substring(0, 8)}...</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${order.id}')">📋</button>
+                            </td>
+                            <td>
+                                <span style="font-family: monospace; font-size: 12px;">${order.walletAddress.substring(0, 10)}...${order.walletAddress.substring(-6)}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${order.walletAddress}')">📋</button>
+                            </td>
+                            <td><strong>${order.usdtAmount}</strong></td>
+                            <td>${order.vndAmount?.toLocaleString() || 'N/A'}</td>
+                            ${bankAccountCell}
+                            <td><span class="status-badge status-${order.status}">${getStatusText(order.status)}</span></td>
+                            <td>${new Date(order.createdAt).toLocaleDateString('vi-VN')}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <select onchange="updateOrderStatus('${order.id}', this.value)" ${order.status === 'completed' ? 'disabled' : ''}>
+                                        <option value="">Chọn hành động</option>
+                                        <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Chờ xử lý</option>
+                                        <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
+                                        <option value="failed" ${order.status === 'failed' ? 'selected' : ''}>Thất bại</option>
+                                    </select>
+                                    <button class="delete-btn" onclick="deleteOrder('${orderType}', '${order.id}')">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('')}
             </tbody>
         </table>
     `;
