@@ -214,8 +214,9 @@ function displayOrders(orders, container, orderType) {
 
 // Toggle select all checkboxes
 function toggleSelectAll(orderType) {
-    const selectAllCheckbox = document.querySelector(`.select-all-checkbox`);
-    const bulkCheckboxes = document.querySelectorAll(`.bulk-checkbox`);
+    const containerSelector = orderType === 'deposit' ? '#depositsContainer' : '#withdrawsContainer';
+    const selectAllCheckbox = document.querySelector(`${containerSelector} .select-all-checkbox`);
+    const bulkCheckboxes = document.querySelectorAll(`${containerSelector} .bulk-checkbox`);
     
     bulkCheckboxes.forEach(checkbox => {
         checkbox.checked = selectAllCheckbox.checked;
@@ -226,7 +227,8 @@ function toggleSelectAll(orderType) {
 
 // Update delete button state
 function updateDeleteButton(orderType) {
-    const checkedBoxes = document.querySelectorAll(`.bulk-checkbox:checked`);
+    const containerSelector = orderType === 'deposit' ? '#depositsContainer' : '#withdrawsContainer';
+    const checkedBoxes = document.querySelectorAll(`${containerSelector} .bulk-checkbox:checked`);
     const deleteButton = document.getElementById(`deleteSelected${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}`);
     
     if (deleteButton) {
@@ -267,7 +269,8 @@ async function deleteOrder(orderType, orderId) {
 
 // Delete selected orders
 async function deleteSelectedOrders(orderType) {
-    const checkedBoxes = document.querySelectorAll(`.bulk-checkbox:checked`);
+    const containerSelector = orderType === 'deposit' ? '#depositsContainer' : '#withdrawsContainer';
+    const checkedBoxes = document.querySelectorAll(`${containerSelector} .bulk-checkbox:checked`);
     const orderIds = Array.from(checkedBoxes).map(cb => cb.dataset.orderId);
     
     if (orderIds.length === 0) {
