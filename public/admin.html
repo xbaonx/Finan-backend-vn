@@ -312,6 +312,56 @@
             border-radius: 50%;
         }
 
+        /* Pagination styles */
+        .pagination-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .pagination-controls {
+            display: inline-flex;
+            gap: 5px;
+            align-items: center;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .pagination-btn:hover {
+            background: #f5f5f5;
+            border-color: #007AFF;
+        }
+        
+        .pagination-btn.active {
+            background: #007AFF;
+            color: white;
+            border-color: #007AFF;
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-dots {
+            padding: 8px 4px;
+            color: #999;
+        }
+        
+        .pagination-info {
+            margin-bottom: 10px;
+            color: #666;
+            font-size: 14px;
+        }
+
         .config-card {
             background: #f8f9fa;
             padding: 20px;

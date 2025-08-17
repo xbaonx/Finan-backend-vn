@@ -2,6 +2,13 @@ const API_BASE = 'https://finan-backend-vn.onrender.com/api/v1';
 let authToken = localStorage.getItem('adminToken');
 let currentOrders = [];
 
+// Pagination state
+let currentPage = {
+    deposits: 1,
+    withdraws: 1
+};
+const itemsPerPage = 20;
+
 // Check if already logged in
 if (authToken) {
     document.getElementById('loginSection').classList.add('hidden');
@@ -81,17 +88,19 @@ function updateStats(summary) {
     document.getElementById('totalUSDT').textContent = `${(summary.totalUSDTDeposited || 0).toFixed(2)}`;
 }
 
-// Load deposits
-async function loadDeposits() {
+// Load deposits with pagination
+async function loadDeposits(page = 1) {
     const loading = document.getElementById('depositsLoading');
     const container = document.getElementById('depositsContainer');
     
+    currentPage.deposits = page;
     loading.classList.remove('hidden');
     
     try {
         const statusFilter = document.getElementById('depositStatusFilter').value;
+        const offset = (page - 1) * itemsPerPage;
         
-        let url = `${API_BASE}/admin/orders?limit=50&type=deposit`;
+        let url = `${API_BASE}/admin/orders?limit=${itemsPerPage}&offset=${offset}&type=deposit`;
         if (statusFilter) url += `&status=${statusFilter}`;
         
         const response = await fetch(url, {
@@ -106,7 +115,7 @@ async function loadDeposits() {
         const data = await response.json();
         
         if (data.success) {
-            displayOrders(data.orders, container, 'deposit');
+            displayOrdersWithPagination(data.orders, container, 'deposit', data.total || data.orders.length, page);
         } else {
             container.innerHTML = '<p>Lỗi tải đơn nạp tiền</p>';
         }
@@ -118,17 +127,19 @@ async function loadDeposits() {
     }
 }
 
-// Load withdraws
-async function loadWithdraws() {
+// Load withdraws with pagination
+async function loadWithdraws(page = 1) {
     const loading = document.getElementById('withdrawsLoading');
     const container = document.getElementById('withdrawsContainer');
     
+    currentPage.withdraws = page;
     loading.classList.remove('hidden');
     
     try {
         const statusFilter = document.getElementById('withdrawStatusFilter').value;
+        const offset = (page - 1) * itemsPerPage;
         
-        let url = `${API_BASE}/admin/orders?limit=50&type=withdraw`;
+        let url = `${API_BASE}/admin/orders?limit=${itemsPerPage}&offset=${offset}&type=withdraw`;
         if (statusFilter) url += `&status=${statusFilter}`;
         
         const response = await fetch(url, {
@@ -143,7 +154,7 @@ async function loadWithdraws() {
         const data = await response.json();
         
         if (data.success) {
-            displayOrders(data.orders, container, 'withdraw');
+            displayOrdersWithPagination(data.orders, container, 'withdraw', data.total || data.orders.length, page);
         } else {
             container.innerHTML = '<p>Lỗi tải đơn rút tiền</p>';
         }
@@ -155,8 +166,8 @@ async function loadWithdraws() {
     }
 }
 
-// Display orders table
-function displayOrders(orders, container, orderType) {
+// Display orders table with pagination
+function displayOrdersWithPagination(orders, container, orderType, totalItems, currentPageNum) {
     if (orders.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #8E8E93; padding: 40px;">Không có đơn hàng nào</p>';
         return;
@@ -237,7 +248,64 @@ function displayOrders(orders, container, orderType) {
         </table>
     `;
     
-    container.innerHTML = table;
+    // Add pagination controls
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const paginationHtml = createPaginationControls(orderType, currentPageNum, totalPages);
+    
+    container.innerHTML = table + paginationHtml;
+}
+
+// Create pagination controls
+function createPaginationControls(orderType, currentPageNum, totalPages) {
+    if (totalPages <= 1) return '';
+    
+    let paginationHtml = `
+        <div class="pagination-container" style="margin-top: 20px; text-align: center;">
+            <div class="pagination-info" style="margin-bottom: 10px; color: #666; font-size: 14px;">
+                Trang ${currentPageNum} / ${totalPages}
+            </div>
+            <div class="pagination-controls">
+    `;
+    
+    // Previous button
+    if (currentPageNum > 1) {
+        paginationHtml += `<button class="pagination-btn" onclick="load${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}(${currentPageNum - 1})">‹ Trước</button>`;
+    }
+    
+    // Page numbers
+    const startPage = Math.max(1, currentPageNum - 2);
+    const endPage = Math.min(totalPages, currentPageNum + 2);
+    
+    if (startPage > 1) {
+        paginationHtml += `<button class="pagination-btn" onclick="load${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}(1)">1</button>`;
+        if (startPage > 2) {
+            paginationHtml += `<span class="pagination-dots">...</span>`;
+        }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const activeClass = i === currentPageNum ? 'active' : '';
+        paginationHtml += `<button class="pagination-btn ${activeClass}" onclick="load${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}(${i})">${i}</button>`;
+    }
+    
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            paginationHtml += `<span class="pagination-dots">...</span>`;
+        }
+        paginationHtml += `<button class="pagination-btn" onclick="load${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}(${totalPages})">${totalPages}</button>`;
+    }
+    
+    // Next button
+    if (currentPageNum < totalPages) {
+        paginationHtml += `<button class="pagination-btn" onclick="load${orderType === 'deposit' ? 'Deposits' : 'Withdraws'}(${currentPageNum + 1})">Sau ›</button>`;
+    }
+    
+    paginationHtml += `
+            </div>
+        </div>
+    `;
+    
+    return paginationHtml;
 }
 
 // Toggle select all checkboxes
