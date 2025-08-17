@@ -349,7 +349,7 @@ async function updateOrderStatus(orderId, newStatus, orderType) {
         const data = await response.json();
         
         if (data.success) {
-            loadOrders(); // Reload orders
+            loadDeposits(); // Reload orders
             loadDashboard(); // Reload stats
         } else {
             alert('Lỗi cập nhật trạng thái: ' + data.message);
@@ -374,15 +374,21 @@ async function loadConfig() {
         const data = await response.json();
         
         if (data.success) {
-            // Update exchange rate display
-            document.getElementById('currentRate').textContent = 
-                data.config.exchangeRates.USD_TO_VND.toLocaleString();
+            // Update exchange rate display - check if element exists
+            const currentRateEl = document.getElementById('currentRate');
+            if (currentRateEl) {
+                currentRateEl.textContent = data.config.exchangeRates.USD_TO_VND.toLocaleString();
+            }
             
-            // Update swap config display
+            // Update swap config display - check if elements exist
             const swapConfig = data.config.swapConfig;
-            document.getElementById('platformFee').textContent = swapConfig.platformFeePercentage + '%';
-            document.getElementById('minSwap').textContent = swapConfig.minSwapAmount + ' USDT';
-            document.getElementById('maxSwap').textContent = swapConfig.maxSwapAmount.toLocaleString() + ' USDT';
+            const platformFeeEl = document.getElementById('platformFee');
+            const minSwapEl = document.getElementById('minSwap');
+            const maxSwapEl = document.getElementById('maxSwap');
+            
+            if (platformFeeEl) platformFeeEl.value = swapConfig.platformFeePercentage;
+            if (minSwapEl) minSwapEl.value = swapConfig.minSwapAmount;
+            if (maxSwapEl) maxSwapEl.value = swapConfig.maxSwapAmount;
         }
     } catch (error) {
         console.error('Error loading config:', error);
@@ -655,4 +661,5 @@ window.updateExchangeRate = updateExchangeRate;
 window.updateSwapConfig = updateSwapConfig;
 window.copyToClipboard = copyToClipboard;
 window.updateAppMode = updateAppMode;
-window.loadOrders = loadOrders;
+// Remove undefined loadOrders reference
+// window.loadOrders = loadOrders;
